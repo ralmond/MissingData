@@ -22,7 +22,8 @@ ${\bf Y}_{obs}$ -- observed portion of the data
 
 ${\bf Y}_{miss}$ -- unobserved portion of the data
 
-${\bf R}$ -- observed indicator, \$r\_{ij} =0 \$ iff $y_{ij}$ is missing; `!is.na(Y)`
+${\bf R}$ -- observed indicator, $r_{ij} =0$ iff $y_{ij}$ is missing; `!is.na(Y)`
+
 
 ${\bf M}$ -- missingness indicator, $m_{ij}=0$ iff $y_{ij}$ is observed; `is.na(Y)`
 
@@ -57,10 +58,11 @@ Most of the missing data techniques we will learn in class require MAR
 
 ## Monotone Missingness Pattern
 
-::: columns
+:::: columns
 ::: {.column width="40%"}
+
 Rows can be sorted to look like figure ![Monotone Pattern of Missingness](img/MonotonePattern.png)
-:::
+
 
 ::: {.column width="60%"}
 Handy for conditional mean or regression imputation
@@ -71,11 +73,10 @@ Handy for conditional mean or regression imputation
 
 -   Regress $Y_4$ on $Y_1, Y_2, Y_3$ and impute values for $Y_4$.
 :::
-:::
+::::
 
 ## Testing MCAR
 
-## Test Results
 
 If missing and nonmissing values are similar on demographic variables, then might be reasonable to assume MCAR
 
@@ -83,13 +84,14 @@ Unfortunately, test rules out MAR (unless also MCAR), but not MNAR!
 
 Conditional Mean/Regression Imputation won't help much in this case
 
-## Missing Data in R
+# Missing Data in R
 
 -   Code for missing data in R is `NA`
 
 -   `NA_integer_`, `NA_real_`, `NA_character_`
 
--   The functions `is.na()` and `anyNA()` (`any(is.na()`) test for the presence of NAs.
+
+-   The functions `is.na()` and `anyNA()` `any(is.na())` test for the presence of NAs.
 
 -   `NA` is distinct from
 
@@ -97,19 +99,20 @@ Conditional Mean/Regression Imputation won't help much in this case
 
     -   `Inf`, `-Inf` (infinity), `is.infinite()`
 
-    -   \NULL (empty list), `is.null()`
+
+    -   `NULL`(empty list), `is.null()`
 
 ## NAs are contagious:
 
 ```{r tests}
 anything <- 12
-expect_true(is.na(NA + anything))
+testthat::expect_true(is.na(NA + anything))
 
-expect_true(is.na(exp(NA)))
+testthat::expect_true(is.na(exp(NA)))
 
-expect_true(is.na(mean(c(1,2,NA)))
+testthat::expect_true(is.na(mean(c(1,2,NA))))
 
-expect_true(!is.na(mean(c(1,2,NA),na.rm=TRUE)))
+testthat::expect_true(!is.na(mean(c(1,2,NA),na.rm=TRUE)))
 ```
 
 ## Working with NAs
@@ -128,7 +131,7 @@ Coding values as missing
 
 -   `Y <- ifelse(Y==-9,NA,Y)`
 
-## Matrix-like objects
+# Matrix-like objects
 
 -   Assume `Y` is a matrix, data.frame or tibble
 
@@ -181,7 +184,7 @@ head(matrix(NA,100,5))
 ```
 
 ```{r}
-head(matrix(NA_Integer_,100,5))
+head(matrix(NA_integer_,100,5))
 ```
 
 Random Matrix
@@ -219,7 +222,8 @@ colnames(rmat) <- paste("X",1:5)
 -   Sequence function
 
 ```{r}
-1:N
+
+1:100  # 1:N
 seq(0,1,.1)
 ```
 
@@ -258,25 +262,25 @@ paste("Var",1:5,sep="")
 
 -   `rXXX(n, ...)` -- draw random numbers for `XXX`
 
--   Most have family specific parameters (common to all functions) \[Check man pages as sometimes uses unusual parameterizations\]
+-   Most have family specific parameters (common to all functions) [Check man pages as sometimes uses unusual parameterizations]
 
 -   First argument for all random number functions is $n$ , length of output vector
 
 ## Useful special cases:
 
--   `runif(n)` \## Uniform random numbers
+*   `runif(n)` -- Uniform random numbers
 
--   `rnorm(n)` \## Standard normal random numbers
+*  `rnorm(n)` -- Standard normal random numbers
 
--   `runif(n) < p` \## Bernoulli (logical) random numbers
+*   `runif(n) < p` -- Bernoulli (logical) random numbers
 
--   Sampling from data
+*   Sampling from data
 
--   `sample(vec, size, replace=FALSE)`
+  -   `sample(vec, size, replace=FALSE)`
 
--   `sample.int(n, size=n, replace=FALSE)`
+  -   `sample.int(n, size=n, replace=FALSE)`
 
-# Numeric Selectors
+## Numeric Selectors
 
 -   If *rows* or *cols* is a single integer, that row or column is selected
 
@@ -334,7 +338,7 @@ With a data.frame you can create a new variable by assigning values to `Y[,"NewV
 
     -   `rownames(Y) = names(Y)`
 
--   Special selector `Y[[j]]` selects column *j* , (or column with name *j* , if *j* is a character scalar)
+-   Special selector `Y[[j]]` selects column *j*, (or column with name *j* , if *j* is a character scalar)
 
 -   Be careful `Y[j]` creates a list (data.frame) with just the column *j* , which is usually NOT what you want.
 
@@ -350,13 +354,13 @@ For tibbles, use the `select` or `pull` function.
 
 ## A few more notes
 
--   These selection rules work on both LHS and RHS of assignment (\<- or =) operator
+-   These selection rules work on both LHS and RHS of assignment (`<-` or `=`) operator
 
 -   Make sure both LHS and RHS have same length/shape
 
 -   Exception, if RHS is a scalar, then all values are set to the same thing
 
--   help("\[") gets the relevant help page.
+-   `help("[")` gets the relevant help page.
 
 ## apply and sweep
 
@@ -448,6 +452,7 @@ for (col in names(df.z)) {
                     sd(df[[col]],na.rm=TRUE)
 
 } ## Next column
+```
 
 Alternative loop
 
@@ -459,6 +464,7 @@ Alternative loop
 Trick, use lapply with an _anonymous function_
 
 Attempt 1
+```{r}
 df1 <- lapply(df,
     function(c) {
         (c-min(c))/(max(c)-min(c))
@@ -472,3 +478,6 @@ Problem: list not a data frame
 ```{r}
 as.data.frame(df1)
 ```
+
+Also, can use `sapply()` or `t(sapply())` if the result is the wrong shape.
+

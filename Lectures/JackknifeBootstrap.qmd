@@ -131,6 +131,7 @@ cl <- makeCluster(detectCores()-1)
 I always try make my clusters with fewer than all of the processors.
 
 ## Sample data
+
 ```{r}
 N <- 100
 x <- rnorm(N)
@@ -145,14 +146,18 @@ data
 ## Imputation function
 
 Mean imputation, just put in 0.
+
 ```{r}
 imp <- function(dat)
   data.frame(
-   lapply(dat,function (col) 
-    ifelse(is.na(col),mean(col,na.rm=TRUE),col)))
+   lapply(dat,function (col) {
+    ifelse(is.na(col),mean(col,na.rm=TRUE),col)
+     }))
+
 
 imp(data)
 ```
+
 ## Estimation Function
 
 ```{r}
@@ -166,19 +171,41 @@ est(imp(data))
 
 ```{r}
 x.est <- est(imp(data))
-jest <- lapply(1:nrow(data),
+jest <- t(sapply(1:nrow(data),
        function(row) {
          dat1 <- data[-row,]
          est(imp(dat1))
-       })
-
+       }))
+head(jest)
 ```
-
 
 ```{r}
 x.bias <- N*x.est - colSums(jest)
 x.se <- sqrt((N-1)^2/N*diag(var(jest)))
+print("estimate")
 x.est
+print("bias")
 x.bias
+print("se")
 x.se
+```
+## Parallel computing
+
+Replace `sapply` with `parSapply`
+
+Export global objects to the clusters:  
+  `data`, `imp` and `est`
+```{r}
+x.est <- est(imp(data))
+
+clusterExport(cl,varlist=c("data",
+                           "est",
+                           "imp"))
+jest1 <- t(parSapply(cl=cl,
+            1:nrow(data),
+            function(row) {
+         dat1 <- data[-row,]
+         est(imp(dat1))
+}))
+head(jest1)
 ```
