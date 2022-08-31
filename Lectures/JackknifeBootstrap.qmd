@@ -1,0 +1,184 @@
+---
+title: "Bootstrap and Jackknife"
+author: "Russell Almond"
+format: revealjs
+editor: visual
+---
+
+# Bootstrap and Jackknife
+
+Resampling Techniques for calculating standard errors.
+
+## Unbiased standard errors
+
+Some single imputation techniques provide unbiased estimates of the mean
+
+Almost all underestimate the standard error
+
+Problem is that we are treating unknown missing data point as if it is known
+
+## 3 methods with correct s.e.s
+
+Stratified sampling with adjustment for effective sample size
+
+Bootstrap standard errors
+
+Jackknife standard errors
+
+In both of the latter cases, the secret is that the missing data imputation must be done inside of the bootstrap/jackknife loop.
+
+## Jackknife
+
+Maurice Quenouille (1949, 1956). John Tukey (1958).
+
+Tukey gave it the name *jackknife* because it was like a Boy Scout's "rough and ready" tool
+
+Used in NAEP (jackknife weights are supplied)
+
+![Jackknife](https://images.wisegeek.com/slideshow-mobile-small/fold-in-pocket-knife.jpg)
+
+[Image Source](http://www.wisegeek.com/what-is-a-jackknife.htm)
+
+## Key Idea
+
+Standard error is standard deviation of statistic over many possible samples
+
+We can make $n$ samples of a close size by simply leaving out each data point in turn.
+
+## Tricks for doing this in R
+
+Use `data[-i, ]` to remove one row at a time (within loop)
+
+Pre-allocate storage for results (saves time).
+
+Make sure that all the calculations (including missing data imputation) are inside the loop.
+
+## Generic Jackknife Code (R)
+
+`est(X)` be estimator
+
+`imp(X)` be imputation function
+
+```{r GenericJackknife}
+#| eval: false
+#| echo: true
+#| fig-cap: "Generic Jackknife Algorithm"
+X.est <- est(imp(X))
+n<-nrow(X)
+
+jest <- matrix(NA,n,length(X.est))
+for (i in 1:nrow(X)){
+  X.imp <- imp(X[-i,])
+  jest[i,] <- est(X.imp)
+}
+
+X.jse <- sqrt((n-1)^2/n*diag(var(jest)))
+X.jbias <- n*X.est - (n-1)*colMeans(jest)
+```
+
+## Bootstrap
+
+Name comes from 19th C expression "pull oneself over a fence by one's bootstrap"
+
+Efron, B. (1979). Bootstrap methods: Another look at the jackknife. *The Annals of Statistics* *7* (1): 1--26.\_doi:\_ [10.1214/aos/1176344552](https://dx.doi.org/10.1214/aos/1176344552).
+
+![Bootstrap](img/bootstrap.jpg) [Image Source](http://www.lemen.com/imageBootstrap1.html)
+
+## Tricks for doing this in R
+
+Use `sample.int(nrow(X),nrow(X), replace=TRUE)` to get each boostrap sample.
+
+Use `X[samp,]` to get the sample.
+
+Pre-allocate storage for results (saves time).
+
+Make sure that all the calculations (including missing data imputation) are inside the loop.
+
+## Generic Bootstrap code
+
+`est(X)` be estimator
+
+`imp(X)` be imputation function
+
+```{r genericBootstrap}
+#| eval: false
+#| echo: true
+#| fig-cap:  "Generic Bootstrap Algorithm"
+X.est <- est(imp(X))
+n<-nrow(X)
+B <- 100 ## Number of bootstrap samples
+
+best <- matrix(NA,B,length(X.est))
+for (i in 1:B){
+  samp <- sample.int(n,n,replace=TRUE)
+  X.imp <- imp(X[samp,])
+  best[i,] <- est(X.imp)
+}
+
+X.bse <- sqrt(diag(var(best)))
+X.Bbias <- X.est - colMeans(best)
+```
+
+# Example
+
+## Parallel Processing
+
+```{r}
+library(parallel)
+cl <- makeCluster(detectCores()-1)
+```
+
+I always try make my clusters with fewer than all of the processors.
+
+## Sample data
+```{r}
+N <- 100
+x <- rnorm(N)
+y <- .6*x + .4*rnorm(N)
+
+data <- data.frame(x,y)
+is.na(data$x) <- runif(100)<.1
+is.na(data$y) <- runif(100)<.1
+data
+```
+
+## Imputation function
+
+Mean imputation, just put in 0.
+```{r}
+imp <- function(dat)
+  data.frame(
+   lapply(dat,function (col) 
+    ifelse(is.na(col),mean(col,na.rm=TRUE),col)))
+
+imp(data)
+```
+## Estimation Function
+
+```{r}
+est <- function(dat)
+  coef(lm(y~x,data=dat))
+
+est(imp(data))
+```
+
+## Jackknife
+
+```{r}
+x.est <- est(imp(data))
+jest <- lapply(1:nrow(data),
+       function(row) {
+         dat1 <- data[-row,]
+         est(imp(dat1))
+       })
+
+```
+
+
+```{r}
+x.bias <- N*x.est - colSums(jest)
+x.se <- sqrt((N-1)^2/N*diag(var(jest)))
+x.est
+x.bias
+x.se
+```
