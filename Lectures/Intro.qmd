@@ -15,7 +15,7 @@ library(tidyverse)
 
 ## Who am I?
 
-::: columns
+:::: columns
 ::: {.column width="60%"}
 -   http://ralmond.net/
 
@@ -36,7 +36,7 @@ Appointment link: https://doodle.com/bp/russellalmond/book-a-time
 ::: {.column width="40%"}
 ![White-bearded Heros](img/sometimes-you-need-an-old-white-man-with-a-beard.jpg){width="100%"}
 :::
-:::
+::::
 
 ## Course Text
 
