@@ -18,105 +18,86 @@ library(testthat)
 
 ${\bf Y}$ -- complete data matrix
 
-${\bf Y}_{obs}$  --  observed portion of the data
+${\bf Y}_{obs}$ -- observed portion of the data
 
 ${\bf Y}_{miss}$ -- unobserved portion of the data
 
-${\bf R}$ -- observed indicator, $r_{ij} =0 $ iff $y_{ij}$ is missing; `!is.na(Y)` 
+${\bf R}$ -- observed indicator, $r_{ij} =0$ iff $y_{ij}$ is missing; `!is.na(Y)`
 
 ${\bf M}$ -- missingness indicator, $m_{ij}=0$ iff $y_{ij}$ is observed; `is.na(Y)`
 
 $\phi, \theta$ -- generic parameter sets.
 
-
 ## Missing Completely At Random (MCAR)
 
 $$p({\bf R} |{\bf Y}_{obs},  {\bf Y}_{miss}, \phi) = p({\bf R} | \phi )$$
 
-In other words missing data indicator is conditionally independent of
-both observed and missing data given the parameters 
+In other words missing data indicator is conditionally independent of both observed and missing data given the parameters
 
-Only case for which complete case analysis (listwise and pairwise
-deletion) works 
-
+Only case for which complete case analysis (listwise and pairwise deletion) works
 
 ## Missing At Random (MAR)
 
 $$p( {\bf R} | {\bf Y}_{obs}, {\bf Y}_{miss}, \phi) = p({\bf R} | {\bf
 Y}_{obs}, \phi) $$
 
-Often ${\bf Y} =({\bf X}, {\bf Z})$ , where ${\bf X}$ is completely
-observed (often demographic data) and all of the missing values are in
-${\bf Z}$
+Often ${\bf Y} =({\bf X}, {\bf Z})$ , where ${\bf X}$ is completely observed (often demographic data) and all of the missing values are in ${\bf Z}$
 
 Most of the missing data techniques we will learn in class require MAR
 
-
 ## Missing Not at Random (MNAR)
 
-* Non-ignorable missingness
+-   Non-ignorable missingness
 
-* In order to make progress, we must make assumptions about $p( {\bf
-  R} | {\bf Y}_{obs}, {\bf Y}_{miss}, \phi )$
+-   In order to make progress, we must make assumptions about $p( {\bf R} | {\bf Y}_{obs}, {\bf Y}_{miss}, \phi )$
 
-* Try taking a sample of the missing responses
+-   Try taking a sample of the missing responses
 
-* Capture recapture
-
+-   Capture recapture
 
 ## Monotone Missingness Pattern
 
-:::: columns
+::: columns
 ::: {.column width="40%"}
 Rows can be sorted to look like figure
-
-
 :::
 
 ::: {.column width="60%"}
-
 Handy for conditional mean or regression imputation
 
-* Regress $Y_2$ on $Y_1$ and impute values for $Y_2$
+-   Regress $Y_2$ on $Y_1$ and impute values for $Y_2$
 
-* Regress $Y_3$ on $Y_1, Y_2$ and impute values for $Y_3$
+-   Regress $Y_3$ on $Y_1, Y_2$ and impute values for $Y_3$
 
-* Regress $Y_4$  on $Y_1, Y_2, Y_3$  and impute values for $Y_4$.
-
+-   Regress $Y_4$ on $Y_1, Y_2, Y_3$ and impute values for $Y_4$.
 :::
-::::
+:::
 
 ## Testing MCAR
 
-
-
 ## Test Results
 
-If missing and nonmissing values are similar on demographic variables,
-then might be reasonable to assume MCAR 
+If missing and nonmissing values are similar on demographic variables, then might be reasonable to assume MCAR
 
 Unfortunately, test rules out MAR (unless also MCAR), but not MNAR!
 
 Conditional Mean/Regression Imputation won't help much in this case
 
-
 ## Missing Data in R
 
-* Code for missing data in R is `NA`
+-   Code for missing data in R is `NA`
 
-* `NA_integer_`, `NA_real_`, `NA_character_`
+-   `NA_integer_`, `NA_real_`, `NA_character_`
 
-* The functions `is.na()` and `anyNA()` (`any(is.na()`) test for the
-  presence of NAs. 
+-   The functions `is.na()` and `anyNA()` `any(is.na()`) test for the presence of NAs.
 
-* `NA` is distinct from
+-   `NA` is distinct from
 
-  -  `NaN` (not a number), `is.nan()`
+    -   `NaN` (not a number), `is.nan()`
 
-  -  `Inf`, `-Inf` (infinity), `is.infinite()`
-  
-  -  \NULL\ (empty list), `is.null()`
+    -   `Inf`, `-Inf` (infinity), `is.infinite()`
 
+    -   `NULL`(empty list), `is.null()`
 
 ## NAs are contagious:
 
@@ -124,77 +105,75 @@ Conditional Mean/Regression Imputation won't help much in this case
 anything <- 12
 expect_true(is.na(NA + anything))
 
-expect_true(is.na(exp(NA)))
+testthat::expect_true(is.na(exp(NA)))
 
-expect_true(is.na(mean(c(1,2,NA)))
+testthat::expect_true(is.na(mean(c(1,2,NA)))
 
-expect_true(!is.na(mean(c(1,2,NA),na.rm=TRUE)))
+testhat::expect_true(!is.na(mean(c(1,2,NA),na.rm=TRUE)))
 ```
-
 
 ## Working with NAs
 
 Setting Values to be Missing
 
-* `Y[ rows , cols ] <- NA`
+-   `Y[ rows , cols ] <- NA`
 
-* `is.na(Y[ rows , cols ]) <- TRUE`
+-   `is.na(Y[ rows , cols ]) <- TRUE`
 
 Coding values as missing
 
-* `Y <- read.table( file,..., na.strings="-9")`
+-   `Y <- read.table( file,..., na.strings="-9")`
 
-* `is.na(Y[Y==-9]) <- TRUE`
+-   `is.na(Y[Y==-9]) <- TRUE`
 
-* `Y <- ifelse(Y==-9,NA,Y)`
-
+-   `Y <- ifelse(Y==-9,NA,Y)`
 
 ## Matrix-like objects
 
-* Assume `Y` is a matrix, data.frame or tibble
+-   Assume `Y` is a matrix, data.frame or tibble
 
-* `nrow(Y)` is number of rows
+-   `nrow(Y)` is number of rows
 
-* `ncol(Y)` is number of columns
+-   `ncol(Y)` is number of columns
 
-* `rownames(Y)` is names of rows (or `NULL`)
+-   `rownames(Y)` is names of rows (or `NULL`)
 
-* `colnames(Y)` is names of columns (or `NULL`)
+-   `colnames(Y)` is names of columns (or `NULL`)
 
-* `dim(Y)` give dimension of `Y` (as vector)
+-   `dim(Y)` give dimension of `Y` (as vector)
 
 ## Matrix versus data frame (tibble)
 
-* In a matrix, all variables are the same type (integer, real,
-  character, factor) 
+-   In a matrix, all variables are the same type (integer, real, character, factor)
 
-* `as.matrix(Y)` -- force `Y` to be a matrix
+-   `as.matrix(Y)` -- force `Y` to be a matrix
 
-* `is.matrix(Y)` -- check if `Y` is a matrix
+-   `is.matrix(Y)` -- check if `Y` is a matrix
 
-* In a data.frame, variables can have different types
+-   In a data.frame, variables can have different types
 
-* `as.data.frame(Y)` -- force `Y` to be a data frame
+-   `as.data.frame(Y)` -- force `Y` to be a data frame
 
-* `is.data.frame(Y)` -- check to see if `Y` is a data frame
-
+-   `is.data.frame(Y)` -- check to see if `Y` is a data frame
 
 ## Making matrixes
 
-* `matrix(data = NA, nrow=1, ncol=1, byrow = FALSE)`
-  - `NA_real_`, `NA_integer_`.
+-   `matrix(data = NA, nrow=1, ncol=1, byrow = FALSE)`
 
-* data can be a single value (repeated) or a vector of values (e.g., `1:12` or `c(2,3,4)`)
+    -   `NA_real_`, `NA_integer_`.
 
-* Data is assumed to be done by columns unless byrow is TRUE.
+-   data can be a single value (repeated) or a vector of values (e.g., `1:12` or `c(2,3,4)`)
 
+-   Data is assumed to be done by columns unless byrow is TRUE.
 
 ```{r}
 matrix(1:12,3,4)
 ```
+
 ```{r}
 matrix(1:12,3,4,byrow=TRUE)
 ```
+
 ## Blank Matrixes
 
 ```{r}
@@ -210,6 +189,7 @@ Random Matrix
 ```{r}
 rmat <- matrix(rnorm(500),100,5) 
 ```
+
 Can set colnames to indicate variable names.
 
 ```{r}
@@ -218,40 +198,39 @@ colnames(rmat) <- paste("X",1:5)
 
 ## Making data.frames
 
-* `data.frame(...,row.names=NULL)`
+-   `data.frame(...,row.names=NULL)`
 
-  -  Each value in `...` is a column
+    -   Each value in `...` is a column
 
-  -  `name = value`
+    -   `name = value`
 
-  -  `value`
+    -   `value`
 
-* All columns must be the same length
+-   All columns must be the same length
 
 `df <- data.frame(x=1:50, y=rnorm(50),z=runif(50)<.5)`
 
-* Can add column names by setting `names(df)`
+-   Can add column names by setting `names(df)`
 
-* Can add new columns by setting `df$newcol`
-
+-   Can add new columns by setting `df$newcol`
 
 ## Useful tricks
 
-* Sequence function
+-   Sequence function
 
 ```{r}
 1:N
 seq(0,1,.1)
 ```
 
-* Repetition function
+-   Repetition function
 
 ```{r}
 rep(1:3,2)
 rep(1:3,each=2)
 ```
 
-* Paste function (put together strings)
+-   Paste function (put together strings)
 
 ```{r}
 paste("Var",1:5,sep="")
@@ -259,172 +238,149 @@ paste("Var",1:5,sep="")
 
 ## Factor variables
 
-* `factor(X, ...)`
+-   `factor(X, ...)`
 
-* `ordered(X, levels=c(...), ...)`
+-   `ordered(X, levels=c(...), ...)`
 
-* Only useful with data frames (or tibbles)
-
+-   Only useful with data frames (or tibbles)
 
 ## Random Numbers
 
-* Most R distributions come in families
+-   Most R distributions come in families
 
-* `XXX` -- family name, not a function, but there is a help page for it
+-   `XXX` -- family name, not a function, but there is a help page for it
 
-* `dXXX(x,...)` -- density function for `XXX` (or probability function for discrete distributions)
+-   `dXXX(x,...)` -- density function for `XXX` (or probability function for discrete distributions)
 
-* `pXXX(q, ...)` -- cumulative distribution function for `XXX`
+-   `pXXX(q, ...)` -- cumulative distribution function for `XXX`
 
-* `qXXX(p, ...)` -- inverse cumulative distribution function for `XXX`
+-   `qXXX(p, ...)` -- inverse cumulative distribution function for `XXX`
 
-* `rXXX(n, ...)` -- draw random numbers for `XXX`
+-   `rXXX(n, ...)` -- draw random numbers for `XXX`
 
-* Most have family specific parameters (common to all functions) [Check man pages as sometimes uses unusual parameterizations]
+-   Most have family specific parameters (common to all functions) \[Check man pages as sometimes uses unusual parameterizations\]
 
-* First argument for all random number functions is $n$ , length of output vector
+-   First argument for all random number functions is $n$ , length of output vector
 
-##  Useful special cases:
+## Useful special cases:
 
-* `runif(n)` ## Uniform random numbers
+-   `runif(n)` \## Uniform random numbers
 
-* `rnorm(n)` ## Standard normal random numbers
+-   `rnorm(n)` \## Standard normal random numbers
 
-* `runif(n) < p` ## Bernoulli (logical) random numbers
+-   `runif(n) < p` \## Bernoulli (logical) random numbers
 
-* Sampling from data
+-   Sampling from data
 
- -  `sample(vec, size, replace=FALSE)`
+-   `sample(vec, size, replace=FALSE)`
 
- -  `sample.int(n, size=n, replace=FALSE)`
-
+-   `sample.int(n, size=n, replace=FALSE)`
 
 # Numeric Selectors
 
-* If _rows_ or _cols_ is a single integer, that row or column is selected
+-   If *rows* or *cols* is a single integer, that row or column is selected
 
-* If _rows _ or _cols _ is left blank, all rows or columns are selected
+-   If *rows* or *cols* is left blank, all rows or columns are selected
 
-* `Y[i, ]` -- select row _i_
+-   `Y[i, ]` -- select row *i*
 
-* `Y[ ,j]` -- select column _j_
+-   `Y[ ,j]` -- select column *j*
 
-* If _rows_ or _cols_ is a vector of integers, then the corresponding
-  set of rows, columns are slected 
+-   If *rows* or *cols* is a vector of integers, then the corresponding set of rows, columns are slected
 
-* `Y[1:10, ]` -- first ten rows
+-   `Y[1:10, ]` -- first ten rows
 
-* `Y[c(2,4,6), ]` -- rows 2, 4 and 6
+-   `Y[c(2,4,6), ]` -- rows 2, 4 and 6
 
-* If _rows _ or _cols_ are a negative number, leave out the indicated
-  rows or columns 
+-   If *rows* or *cols* are a negative number, leave out the indicated rows or columns
 
-* `Y[ -i, ]` -- every row but row _j_
+-   `Y[ -i, ]` -- every row but row *j*
 
-* `Y[-outliers, ]` -- omit the rows indicated in the variable outliers
+-   `Y[-outliers, ]` -- omit the rows indicated in the variable outliers
 
-* Order is important
+-   Order is important
 
- - `Y[order(Y[,4]), ]` -- sorts Y by the forth column
-
-
+-   `Y[order(Y[,4]), ]` -- sorts Y by the forth column
 
 ## Character Selectors
 
-If _rows _ or _columns_ is a character scalar, then the row or column
-with the corresponding name will be selected 
+If *rows* or *columns* is a character scalar, then the row or column with the corresponding name will be selected
 
 Same thing is true for character vectors `Y[,c("Var1", "Var2")]`
 
-Using character selectors for columns is good practice because (a) the
-intent of the code is usually clearer and (b) it is more robust to
-insterting/deleting columns. 
+Using character selectors for columns is good practice because (a) the intent of the code is usually clearer and (b) it is more robust to insterting/deleting columns.
 
-With a data.frame you can create a new variable by assigning values to
-`Y[,"NewVar"]`, doesn't work with matrixes 
-
+With a data.frame you can create a new variable by assigning values to `Y[,"NewVar"]`, doesn't work with matrixes
 
 ## Logical Selectors
 
-* If _rows_ is a logical vector of length `nrow(Y)`, then the rows were
-  `rows=TRUE` will be selected (same thing for columns) 
+-   If *rows* is a logical vector of length `nrow(Y)`, then the rows were `rows=TRUE` will be selected (same thing for columns)
 
-* `Y[Y[,1] < 0, 4]` -- selects values of `Y[,4]` corresponding to rows
-  where `Y[,1]` is negative. 
+-   `Y[Y[,1] < 0, 4]` -- selects values of `Y[,4]` corresponding to rows where `Y[,1]` is negative.
 
-* `Y[!is.na(Y[,1]),1]` -- selects all of the observed values of `Y[,1]`
+-   `Y[!is.na(Y[,1]),1]` -- selects all of the observed values of `Y[,1]`
 
-* Matrixes only -- matrix is stored internally as a large vector
-  `length(Y) = nrow(Y)*ncol(Y)` 
+-   Matrixes only -- matrix is stored internally as a large vector `length(Y) = nrow(Y)*ncol(Y)`
 
-* Can use this with logical selection to find missing values anywhere
-  they appear 
+-   Can use this with logical selection to find missing values anywhere they appear
 
-  - `Y[Y==-9] <- NA` -- recode -9 as NA anywhere it appears in the matrix.
+    -   `Y[Y==-9] <- NA` -- recode -9 as NA anywhere it appears in the matrix.
 
 ## Special rule for data frames
 
-* Internally a data.frame is stored as a list of columns
+-   Internally a data.frame is stored as a list of columns
 
-  - `length(Y) = ncol(Y)`
+    -   `length(Y) = ncol(Y)`
 
-  -  `rownames(Y) = names(Y)`
+    -   `rownames(Y) = names(Y)`
 
-* Special selector `Y[[j]]` selects column _j_ , (or column with name
-  _j_ , if _j_ is a character scalar) 
+-   Special selector `Y[[j]]` selects column *j* , (or column with name *j* , if *j* is a character scalar)
 
-* Be careful `Y[j]` creates a list (data.frame) with just the column
-  _j_ , which is usually NOT what you want. 
+-   Be careful `Y[j]` creates a list (data.frame) with just the column *j* , which is usually NOT what you want.
 
-* The `$` operator selects a single column by name.
+-   The `$` operator selects a single column by name.
 
- - `Y$var1` -- selects var1
+-   `Y$var1` -- selects var1
 
- - `Y$missspeled` -- returns `NULL`
+-   `Y$missspeled` -- returns `NULL`
 
- -  `Y$newvar <- NA_real_` -- creates a new variable and fills it with NAs.
+-   `Y$newvar <- NA_real_` -- creates a new variable and fills it with NAs.
 
 For tibbles, use the `select` or `pull` function.
 
 ## A few more notes
 
-* These selection rules work on both LHS and RHS of assignment (<- or =) operator
+-   These selection rules work on both LHS and RHS of assignment (\<- or =) operator
 
-* Make sure both LHS and RHS have same length/shape
+-   Make sure both LHS and RHS have same length/shape
 
-* Exception, if RHS is a scalar, then all values are set to the same thing
+-   Exception, if RHS is a scalar, then all values are set to the same thing
 
-* help("[") gets the relevant help page.
+-   help("\[") gets the relevant help page.
 
 ## apply and sweep
 
-* The function `apply()` summarizes a matrix by rows or columns
+-   The function `apply()` summarizes a matrix by rows or columns
 
-* The function `sweep()` applies the same operation to every
-  row/column of a matrix 
+-   The function `sweep()` applies the same operation to every row/column of a matrix
 
-* Powerful in combination
+-   Powerful in combination
 
-* Should be faster than explicit loops
+-   Should be faster than explicit loops
 
-* Loops aren't too slow in R, so if you are more comfortable using
-  loops, use the loops. 
-
-
+-   Loops aren't too slow in R, so if you are more comfortable using loops, use the loops.
 
 ## Summarize by rows & columns: `apply()`
 
-* `apply(X, 1, fun, ...)` summarizes across columns leaving a vector
-  of length `nrow(X)`. 
+-   `apply(X, 1, fun, ...)` summarizes across columns leaving a vector of length `nrow(X)`.
 
-* `apply(X, 2, fun, ...)` summarizes across columns leaving a vector
-  of length ncol(X). 
+-   `apply(X, 2, fun, ...)` summarizes across columns leaving a vector of length ncol(X).
 
-* Useful values for fun: `min`, `max`, `sum`, `mean`, `sd`, `var`, `median`, `prod`, `"+"`, `"*"`
+-   Useful values for fun: `min`, `max`, `sum`, `mean`, `sd`, `var`, `median`, `prod`, `"+"`, `"*"`
 
-  - For logical values: `any, `all
+    -   For logical values: `any,`all
 
-  - Most take extra argument, `na.rm=TRUE` to ignore missing values
+    -   Most take extra argument, `na.rm=TRUE` to ignore missing values
 
 ```{r}
 mat <- matrix(1:12,3,4)
@@ -438,13 +394,11 @@ apply(mat,1,sum)
 apply(mat,1,sum,na.rm=TRUE)
 ```
 
-
 ## Sweeping out values from a matrix
 
 `sweep(X, MARGIN, STATS, FUN,...)`
 
 STATS is almost always the result of `apply()` with the same MARGIN
-
 
 Scale all values so that maximum is 1 (assumes min is 0).
 
@@ -454,11 +408,13 @@ sweep(X,2,apply(X,2,max),"/")
 ```
 
 Center the data.
+
 ```{r center}
 sweep(X,2,apply(X,2,median,na.rm=TRUE),"-")
 ```
 
 Center and scale data.
+
 ```{r}
 X %>%
   sweep(.,2,apply(.,2,median,na.rm=TRUE),"-") %>%
@@ -467,26 +423,21 @@ X %>%
 
 ## Data frames: lapply and sapply
 
-* The functions `lapply()` and `sapply()` work with lists (data.frame
-  is a special case) 
+-   The functions `lapply()` and `sapply()` work with lists (data.frame is a special case)
 
-  - The function `lapply()` (l for list) always returns a list
-  
-  - `sapply()` (s for simplify) tries to simplify the result into a 
-  vector or a matrix 
+    -   The function `lapply()` (l for list) always returns a list
 
-* Often `sapply()` plays the same role for data frames that `apply()`
-  plays for matrixes 
+    -   `sapply()` (s for simplify) tries to simplify the result into a vector or a matrix
 
-* `sapply(X,max)`
+-   Often `sapply()` plays the same role for data frames that `apply()` plays for matrixes
 
-* `sapply(X,mean,na.rm=TRUE)`
+-   `sapply(X,max)`
 
-* Margin argument is omitted (it is always operates on columns).
+-   `sapply(X,mean,na.rm=TRUE)`
 
+-   Margin argument is omitted (it is always operates on columns).
 
 ## Sweep for data frames: loops
-
 
 ```{r sweepAmatrix}
 df <- data.frame(a=runif(10),b=rnorm(10),c=sample.int(10,10))
@@ -508,7 +459,6 @@ Alternative loop
 Trick, use lapply with an _anonymous function_
 
 Attempt 1
-```{
 df1 <- lapply(df,
     function(c) {
         (c-min(c))/(max(c)-min(c))
@@ -516,9 +466,9 @@ df1 <- lapply(df,
 
 df1
 ```
+
 Problem: list not a data frame
 
 ```{r}
 as.data.frame(df1)
 ```
-

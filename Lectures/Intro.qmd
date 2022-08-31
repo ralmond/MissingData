@@ -260,7 +260,9 @@ Data are not *missing at random* : "No" voters are more likely to have used abse
 
 Illness on day of testing
 
-*Edit Me*
+Software Malfunction
+
+Traffic
 
 ## Structurally Missing (MCAR)
 
@@ -304,6 +306,17 @@ I253
 
 ```
 
+```{R Weighted Average}
+weights <- I253$Pop*I253$PerAbsent
+weights <- weights/sum(weights)
+est <- weighted.mean(I253$Yes,weights)
+est
+```
+
+```{R Final Prediction}
+weighted.mean(c(50.25,48.5),c(1200000,150000))
+```
+
 ## Pundits' Secret
 
 They are making predictions county by county
@@ -329,19 +342,17 @@ Conditional mean imputation
 
 ## MCAR, MAR or Non-ignorable (Ex 9.2)
 
-A survey of high school seniors asks the school administrator to provide grade point average and college entrance exam scores. College entrance exam scores are missing for students who have not taken the test.
-
-Same survey except now survey additionally asks whether or not student has declared an intent to apply for college.
-
-To reduce the burden on the students filling out the survey, the background questions are divided into several sections, and each student is assigned only some of the sections using a spiral pattern. Responses on the unassigned section are missing.
-
-Some students when asked their race decline to answer.
+1.  A survey of high school seniors asks the school administrator to provide grade point average and college entrance exam scores. College entrance exam scores are missing for students who have not taken the test.
+2.  Same survey except now survey additionally asks whether or not student has declared an intent to apply for college.
+3.  To reduce the burden on the students filling out the survey, the background questions are divided into several sections, and each student is assigned only some of the sections using a spiral pattern. Responses on the unassigned section are missing.
+4.  Some students when asked their race decline to answer.
 
 ## Part 1
 
 1.  John did not answer Task j because it was not on the test form he was administered.
+2.  Diwakar did not answer Task j because there are linked harder and easier test forms, intended for fourth and sixth grade students; Task j is an easy item that only appears on the fourth grade form; and Diwakar is in sixth grade, so he was administered the hard form.
 
-2.Diwakardid not answer Task j because there are linked harder and easier test forms, intended for fourth and sixth grade students; Task j is an easy item that only appears on the fourth grade form; andDiwakaris in sixth grade, so he was administered the hard form.
+<!-- -->
 
 3.  Rodrigo took an adaptive test. He did well, the items he was administered tended to be harder as he went along, and Task j was not selected to administer because his responses suggested it was too easy to provide much information about his proficiency.
 
