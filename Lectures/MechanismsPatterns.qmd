@@ -106,13 +106,21 @@ Conditional Mean/Regression Imputation won't help much in this case
 
 ```{r tests}
 anything <- 12
-testthat::expect_true(is.na(NA + anything))
+expect_true(
+  is.na(NA + anything)
+  )
 
-testthat::expect_true(is.na(exp(NA)))
+expect_true(
+  is.na(exp(NA))
+  )
 
-testthat::expect_true(is.na(mean(c(1,2,NA))))
+expect_true(
+  is.na(mean(c(1,2,NA)))
+  )
 
-testthat::expect_true(!is.na(mean(c(1,2,NA),na.rm=TRUE)))
+expect_true(
+  !is.na(mean(c(1,2,NA),na.rm=TRUE))
+  )
 ```
 
 ## Working with NAs
