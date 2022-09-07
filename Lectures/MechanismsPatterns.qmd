@@ -24,7 +24,6 @@ ${\bf Y}_{miss}$ -- unobserved portion of the data
 
 ${\bf R}$ -- observed indicator, $r_{ij} =0$ iff $y_{ij}$ is missing; `!is.na(Y)`
 
-
 ${\bf M}$ -- missingness indicator, $m_{ij}=0$ iff $y_{ij}$ is observed; `is.na(Y)`
 
 $\phi, \theta$ -- generic parameter sets.
@@ -58,11 +57,9 @@ Most of the missing data techniques we will learn in class require MAR
 
 ## Monotone Missingness Pattern
 
-:::: columns
-::: {.column width="40%"}
+:::: columns ::: {.column width="40%"}
 
 Rows can be sorted to look like figure ![Monotone Pattern of Missingness](img/MonotonePattern.png)
-
 
 ::: {.column width="60%"}
 Handy for conditional mean or regression imputation
@@ -73,10 +70,10 @@ Handy for conditional mean or regression imputation
 
 -   Regress $Y_4$ on $Y_1, Y_2, Y_3$ and impute values for $Y_4$.
 :::
+
 ::::
 
 ## Testing MCAR
-
 
 If missing and nonmissing values are similar on demographic variables, then might be reasonable to assume MCAR
 
@@ -90,7 +87,6 @@ Conditional Mean/Regression Imputation won't help much in this case
 
 -   `NA_integer_`, `NA_real_`, `NA_character_`
 
-
 -   The functions `is.na()` and `anyNA()` `any(is.na())` test for the presence of NAs.
 
 -   `NA` is distinct from
@@ -98,7 +94,6 @@ Conditional Mean/Regression Imputation won't help much in this case
     -   `NaN` (not a number), `is.nan()`
 
     -   `Inf`, `-Inf` (infinity), `is.infinite()`
-
 
     -   `NULL`(empty list), `is.null()`
 
@@ -270,23 +265,23 @@ paste("Var",1:5,sep="")
 
 -   `rXXX(n, ...)` -- draw random numbers for `XXX`
 
--   Most have family specific parameters (common to all functions) [Check man pages as sometimes uses unusual parameterizations]
+-   Most have family specific parameters (common to all functions) \[Check man pages as sometimes uses unusual parameterizations\]
 
 -   First argument for all random number functions is $n$ , length of output vector
 
 ## Useful special cases:
 
-*   `runif(n)` -- Uniform random numbers
+-   `runif(n)` -- Uniform random numbers
 
-*  `rnorm(n)` -- Standard normal random numbers
+-   `rnorm(n)` -- Standard normal random numbers
 
-*   `runif(n) < p` -- Bernoulli (logical) random numbers
+-   `runif(n) < p` -- Bernoulli (logical) random numbers
 
-*   Sampling from data
+-   Sampling from data
 
-  -   `sample(vec, size, replace=FALSE)`
+-   `sample(vec, size, replace=FALSE)`
 
-  -   `sample.int(n, size=n, replace=FALSE)`
+-   `sample.int(n, size=n, replace=FALSE)`
 
 ## Numeric Selectors
 
@@ -466,12 +461,12 @@ Alternative loop
 
 `for (j in 1:length(df.z))`
 
-
 ## Sweep for data frames: lapply
 
-Trick, use lapply with an _anonymous function_
+Trick, use lapply with an *anonymous function*
 
 Attempt 1
+
 ```{r}
 df1 <- lapply(df,
     function(c) {
@@ -488,4 +483,3 @@ as.data.frame(df1)
 ```
 
 Also, can use `sapply()` or `t(sapply())` if the result is the wrong shape.
-
