@@ -1,0 +1,328 @@
+---
+title: "Deletion and Imputation"
+author: "Russell Almond"
+format: revealjs
+editor: visual
+---
+
+# Deletion and Imputation Methods
+
+Simple and Traditional Ways of Handling Missing Data
+
+
+
+## Deleting Incomplete Cases
+
+List-wise Deletion (Complete Case Analysis)
+
+Pair-wise Deletion (Available Case Analysis)
+
+_Both require MCAR to produce unbiased estimates of means, variances & correlations_
+
+
+## List-wise Deletion
+
+* If any variable is missing delete the whole row
+* Unbiased only if MCAR
+* Loss of power
+  * Depends on fraction of data lost
+  * Size of complete data sample
+
+
+## Pair-wise Deletion
+
+* For calculations involving  $X$  and  $Y$ , only omit the pair if
+  one of  $X$  or  $Y$  is missing for that row, not if some other
+  variable  $Z$  is missing for this row. 
+* Less severe data loss than with List-wise deletion
+* Normally used with correlation matrixes
+  * Multiple regression
+  * Factor Analysis/SEM
+
+
+## Bad Correlations
+
+Use all available  $X$  values to calculate  $\Var(X)$
+
+Use all available  $Y$  values to calculate  $\Var(Y)$
+
+Use all values available for both  $X$  and  $Y$  to calculate
+$\text{Cov}(X,Y)$
+
+
+The correlation might be bigger than 1 if the pattern of missing
+values for  $X$  and  $Y$  are not the same 
+
+## Positive Definite Covariance Matrix
+
+* For a normal distribution, a covariance matrix must be  _positive
+definite_, that is, we must be able to find a matrix  ${\bf A}$ , such that
+$\Sigma = {\bf A}^T{\bf A}$.
+
+  - Note that ${\bf A}$ is the matrix that transforms a vector of
+    independent uniform random normal valuses to the the correlated
+    values: $ X = {\bf A}Z$.
+
+  - Can find ${\bf A}$ through the Cholesky decomposition,
+    `chol(Sigma)`.
+
+
+* If $\Sigma$ is not positive definite, we will run into problems when
+performing a regression.
+
+Pair-wise deletion does not guarantee that the covariance matrix will
+be positive definite 
+
+## Aside:  Generating Normal Correlated Data
+
+[Pajares(2002)](https://web.archive.org/web/20110102163113/http://www.des.emory.edu/mfp/efftalk.html)
+
+
+
+
+## Imputation Method
+
+* Key idea:  Fill in missing values with a  _plausible value_
+
+* Can then do normal complete data analysis (using SPSS or whatever)
+
+* Depending on method, may work alright in MAR cases
+
+  - Generally unbiased for mean, regression parameter estimates.
+  - Generally underestimates variability of data.
+
+* Overstates power (as power goes with the filled in sample)
+
+
+## Mean Imputation
+
+* Take the mean of each column.  Fill in the missing values with the
+* column mean.
+
+* Sometimes the imputed value is not a legal value (proportion instead
+* of a binary response, rational number instead of an integer) 
+
+* If MCAR
+  * Unbiased for estimating marginal means
+  * Underestimates variances
+  * Overestimates correlations
+
+## The .58 Boy
+
+:::: columns
+::: {.column width="60%"}
+
+>  “Oh, we’re just the average family,” he said thoughtfully; “mother,
+  father, and 2.58 children—and, as I explained, I’m the .58”
+
+* Norman Juster,  _The Phantom Tollbooth,_  p196
+* Illustration by Jules Feiffer, p 195
+:::
+::: {.column width="40%"}
+![The .58 Boy from the _Phantom Toolbooth_](img/Boy.58.jpg){width="100%"}
+:::
+::::
+
+
+## Conditional Mean Imputation
+
+* Conditional Mean
+  - ANOVA framework, divide data up into cells based on discrete variables
+  - Impute the cell mean
+
+```{
+
+}
+* Poststratification/Raking is a version of conditional mean
+imputation
+
+## Regression Imputation
+
+* Regression Imputation
+  * Build regression model for missing values given complete cases
+  * Use the prediction from the regression model to impute missing value
+
+```{r}
+
+```
+
+* Regression and Conditional Mean Imputation methods are mathematically equivalent (code categorical variables with dummy variables)
+
+## Stratified Random Sampling
+
+Divide population up into  $J$  strata
+
+#$N = N_1  + \ldots + N_J$$
+
+Let  $r_j$  be the number of people in strata  $j$  who responded and
+let $r=r_1 + \ldots +  r_J$
+
+__Assume data are MCAR within strata
+
+$$ \overline{y_{ps}} = \frac{1}{N} \sum_{j=1}^J N_j \overline
+{y_{j,obs}} $$
+
+## Variance Estimate
+
+Can make an adjustment to S.E. to get a better estimate of the
+variance
+
+$$\Var(\overline{y_{ps}}) = \frac{1}{N^2} \sum_{j=1}^J N_j^2
+\left ( 1 - \frac{r_j}{N_j} \right) \frac{S^2_{j,obs}}{r_j} $$
+
+Related to the idea of “raking” in a classification table.
+
+
+## Stochastic Regression Imputation
+
+Instead of sampling from the predicted value, sample a residual as
+well and add that to the prediction 
+
+Improves the estimates of correlations, but it still overstates our
+confidence in the sample (variances are too high and apparent power is
+higher than actual power). 
+
+
+## Residual Variance
+
+Recall that our model had a nuisance parameter, the variance of the
+the residuals $\sigma^2$  
+
+Almost all of the standard errors we will calculate are based on this
+
+$$ s = \sqrt{\frac{SS_{Residual}}{n-p}} = \sqrt{MS_{Residual}}
+
+$$ S^2 = S^2_Y (1-R^2) $$
+
+## Standard Error of the Slope
+
+The standard error for  $b_k$  is
+
+$$s_{b_k} = s/\sqrt{SS_{X_k}}$$
+
+Can also calculate a standard error for intercept term.
+
+$s/\sqrt{n}$
+
+## Prediction Error
+
+* Two sources of prediction error:
+  * True regression coefficients are unknown and must be estimated from data
+  * Data points do not typically fall exactly on regression line
+
+* Standard error of predict depends on what question you are asking:
+  * How good is the prediction for the expected value (mean) of $Y$
+   when  $X=  x_{*}$ ? (In SPSS Mean Prediction) 
+  * How good is the prediction for an individual  $Y_i$  when
+  * $X_i=x_{*}$?  (In SPSS Individual prediction)
+
+## Mean Prediction
+
+* “What is the average math scores across all students with a
+* self-efficacy score of 7.0?” 
+* Error sources:
+  * Estimation error in estimating regression line
+
+## Mean Prediction Interval
+
+The standard error for the mean can be estimated from the residual
+variance  $s^2$.
+
+$$ s_{\overline{y_*}} = \sqrt{ s^2 \left [ \frac{1}{n} + \frac{(x_* -
+\overline X)^2}{SS_X} \right ]} $$
+
+Note:  The estimation error is smallest at the mean and gets bigger as
+you get farther away 
+
+## Standard Error of Regression Line
+
+```{r}
+
+```
+
+
+## Individual Prediction
+
+* “What are likely values for the math score for James Goodfellow, who
+* has a self-efficacy of 7.0?” 
+* Expected value from regression line
+* Two sources of variability:
+  * Estimation of regression line
+  * Individual variability around regression line (residual standard error)
+
+Now need to add variability around the regression line to variability
+of the regression line 
+
+$$ s_{{y_*}} = \sqrt{ s^2 \left [ 1+ \frac{1}{n} + \frac{(x_* -
+\overline X)^2}{SS_X} \right ]} $$
+
+Can use  $t$-distribution to form confidence intervals
+
+
+## Prediction standard errors
+
+```{r}
+
+```
+
+## Conditional Means properties
+
+* If MAR
+  * Unbiased estimates of means
+  * Variances underestimated
+  * Correlations overestimated
+* Assumes residuals are approximately normal
+
+## Hot Deck Imputation
+
+* Sort the data set into groups based on complete variables (e.g.,
+census tract)
+
+* Pull a random card off of the stack to impute
+
+* Stochastic conditional means imputation that does not assume normality
+
+![Card Sorter](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Vrouw_bij_een_sorteermachine%2C_Bestanddeelnr_254-2223.jpg/220px-Vrouw_bij_een_sorteermachine%2C_Bestanddeelnr_254-2223.jpg){height=250}
+
+
+## Similar Response Pattern
+
+* Similar to Hot Deck, except we look at a neighborhood of the data point
+  * Define a distance metric over observable variables
+  * Scaling can be difficult, Mahalanobis distance?
+* Implemented in Lisrel
+
+
+## Averaging Available Items
+
+* Usually done on using questionnaires
+* All items on the same scale (e.g., depression) are averaged and then
+  divide by the number of items answered. 
+* Assumes that all items have the same “difficulty”
+  * Does skipping “Have thoughts about HOW to commit suicide” =
+    skipping “Fatigue” 
+
+
+## Time Series Methods
+
+* In panel data, if somebody drops out, you can carry their last
+   observation forward 
+  * Will be a biased estimate if there is growth going on.
+  
+* Many filters have a “smoothing” option that will fill in whole is
+  missing values according to the local trend 
+
+
+## Single vs Multiple Imputation
+
+All single imputation methods underestimate variances
+
+Pretend we know  $Y_{mis}$  when we actually only have partial
+information about it 
+
+Rubin suggests  _multiple imputation_, that is creating 3 – 5 data sets to capture that variability
+
+Multiple imputation and EM methods generally do better than single
+imputation, but understanding single imputation is the basis of
+multiple imputation. 
+
