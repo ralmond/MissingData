@@ -42,16 +42,17 @@ _Both require MCAR to produce unbiased estimates of means, variances & correlati
 
 ## Bad Correlations
 
-Use all available  $X$  values to calculate  $\Var(X)$
+Use all available  $X$  values to calculate  $\text{Var}(X)$
 
-Use all available  $Y$  values to calculate  $\Var(Y)$
+Use all available  $Y$  values to calculate  $\text{Var}(Y)$
 
 Use all values available for both  $X$  and  $Y$  to calculate
 $\text{Cov}(X,Y)$
 
-
 The correlation might be bigger than 1 if the pattern of missing
 values for  $X$  and  $Y$  are not the same 
+
+Pair-wise deletion does not guarantee that the covariance matrix will be _positive definite_ 
 
 ## Positive Definite Covariance Matrix
 
@@ -59,24 +60,30 @@ values for  $X$  and  $Y$  are not the same
 definite_, that is, we must be able to find a matrix  ${\bf A}$ , such that
 $\Sigma = {\bf A}^T{\bf A}$.
 
-  - Note that ${\bf A}$ is the matrix that transforms a vector of
-    independent uniform random normal valuses to the the correlated
-    values: $ X = {\bf A}Z$.
+  - Note that $ X = {\bf A}Z + \mu$, where $Z$ is independent unit normal vector.
 
   - Can find ${\bf A}$ through the Cholesky decomposition,
     `chol(Sigma)`.
 
 
-* If $\Sigma$ is not positive definite, we will run into problems when
-performing a regression.
+* If $\Sigma$ is not positive definite, we will run into problems when performing a regression.
 
-Pair-wise deletion does not guarantee that the covariance matrix will
-be positive definite 
+
 
 ## Aside:  Generating Normal Correlated Data
 
 [Pajares(2002)](https://web.archive.org/web/20110102163113/http://www.des.emory.edu/mfp/efftalk.html)
 
+```{r}
+corr <- matrix(c(1.00,0.55,0.58,
+                 0.55,1.00,0.42,
+                 0.58,0.42,1.00),
+               3,3)
+names <- c("MathProb","IQ","MathSelfEff")
+mus <- c(50,100,5)
+sds <- c(20,15,2)
+
+```
 
 
 
@@ -123,6 +130,11 @@ be positive definite
 :::
 ::::
 
+## Mean Imputation Example
+
+```{r}
+
+```
 
 ## Conditional Mean Imputation
 
@@ -130,9 +142,9 @@ be positive definite
   - ANOVA framework, divide data up into cells based on discrete variables
   - Impute the cell mean
 
-```{
+```{r}
 
-}
+```
 * Poststratification/Raking is a version of conditional mean
 imputation
 
@@ -152,14 +164,14 @@ imputation
 
 Divide population up into  $J$  strata
 
-#$N = N_1  + \ldots + N_J$$
+$$N = N_1  + \ldots + N_J$$
 
 Let  $r_j$  be the number of people in strata  $j$  who responded and
 let $r=r_1 + \ldots +  r_J$
 
-__Assume data are MCAR within strata
+Assume data are MCAR within strata
 
-$$ \overline{y_{ps}} = \frac{1}{N} \sum_{j=1}^J N_j \overline
+$$ \overline{y_{ps}} = \frac{1}{N} \sum_{j=1}^J N_{j} \overline
 {y_{j,obs}} $$
 
 ## Variance Estimate
@@ -167,20 +179,17 @@ $$ \overline{y_{ps}} = \frac{1}{N} \sum_{j=1}^J N_j \overline
 Can make an adjustment to S.E. to get a better estimate of the
 variance
 
-$$\Var(\overline{y_{ps}}) = \frac{1}{N^2} \sum_{j=1}^J N_j^2
-\left ( 1 - \frac{r_j}{N_j} \right) \frac{S^2_{j,obs}}{r_j} $$
+$$\textrm{Var}(\overline{y_{ps}}) = \frac{1}{N^2} \sum_{j=1}^J N_{j}^2
+\left ( 1 - \frac{r_j}{N_j} \right ) \frac{S^2_{j,obs}}{r_j} $$
 
 Related to the idea of “raking” in a classification table.
 
 
 ## Stochastic Regression Imputation
 
-Instead of sampling from the predicted value, sample a residual as
-well and add that to the prediction 
+Instead of sampling from the predicted value, sample a residual as well and add that to the prediction 
 
-Improves the estimates of correlations, but it still overstates our
-confidence in the sample (variances are too high and apparent power is
-higher than actual power). 
+Improves the estimates of correlations, but it still overstates our confidence in the sample (variances are too high and apparent power is higher than actual power). 
 
 
 ## Residual Variance
@@ -190,7 +199,7 @@ the residuals $\sigma^2$
 
 Almost all of the standard errors we will calculate are based on this
 
-$$ s = \sqrt{\frac{SS_{Residual}}{n-p}} = \sqrt{MS_{Residual}}
+$$ s = \sqrt{\frac{SS_{Residual}}{n-p}} = \sqrt{MS_{Residual}}$$
 
 $$ S^2 = S^2_Y (1-R^2) $$
 
@@ -207,14 +216,12 @@ $s/\sqrt{n}$
 ## Prediction Error
 
 * Two sources of prediction error:
-  * True regression coefficients are unknown and must be estimated from data
+  * True regression coefficients are estimated not known
   * Data points do not typically fall exactly on regression line
 
-* Standard error of predict depends on what question you are asking:
-  * How good is the prediction for the expected value (mean) of $Y$
-   when  $X=  x_{*}$ ? (In SPSS Mean Prediction) 
-  * How good is the prediction for an individual  $Y_i$  when
-  * $X_i=x_{*}$?  (In SPSS Individual prediction)
+* Standard error of predict depends on the question asked:
+  * How good is the prediction for the expected value (mean) of $Y$ when  $X=  x_{*}$ ? (In SPSS Mean Prediction) 
+  * How good is the prediction for an individual  $Y_i$  when $X_i=x_{*}$?  (In SPSS Individual prediction)
 
 ## Mean Prediction
 
@@ -223,10 +230,10 @@ $s/\sqrt{n}$
 * Error sources:
   * Estimation error in estimating regression line
 
+
 ## Mean Prediction Interval
 
-The standard error for the mean can be estimated from the residual
-variance  $s^2$.
+The standard error for the mean can be estimated from the residual variance  $s^2$.
 
 $$ s_{\overline{y_*}} = \sqrt{ s^2 \left [ \frac{1}{n} + \frac{(x_* -
 \overline X)^2}{SS_X} \right ]} $$
@@ -243,18 +250,19 @@ you get farther away
 
 ## Individual Prediction
 
-* “What are likely values for the math score for James Goodfellow, who
-* has a self-efficacy of 7.0?” 
+* “What are likely values for the math score for James Goodfellow, who has a self-efficacy of 7.0?” 
 * Expected value from regression line
 * Two sources of variability:
   * Estimation of regression line
   * Individual variability around regression line (residual standard error)
 
+## Individitual Precition Error
+
 Now need to add variability around the regression line to variability
 of the regression line 
 
-$$ s_{{y_*}} = \sqrt{ s^2 \left [ 1+ \frac{1}{n} + \frac{(x_* -
-\overline X)^2}{SS_X} \right ]} $$
+$$ s_{y_{*}} = \sqrt{ s^2 \left [ 1+ \frac{1}{n} + \frac{( x_{*} -
+\overline X )^2}{SS_X} \right ]} $$
 
 Can use  $t$-distribution to form confidence intervals
 
@@ -264,6 +272,14 @@ Can use  $t$-distribution to form confidence intervals
 ```{r}
 
 ```
+
+## Stochastic Regression Imputation
+
+```{r}
+
+```
+
+
 
 ## Conditional Means properties
 
@@ -275,8 +291,7 @@ Can use  $t$-distribution to form confidence intervals
 
 ## Hot Deck Imputation
 
-* Sort the data set into groups based on complete variables (e.g.,
-census tract)
+* Sort the data set into groups based on complete variables (e.g., census tract)
 
 * Pull a random card off of the stack to impute
 
@@ -296,8 +311,7 @@ census tract)
 ## Averaging Available Items
 
 * Usually done on using questionnaires
-* All items on the same scale (e.g., depression) are averaged and then
-  divide by the number of items answered. 
+* All items on the same scale (e.g., depression) are averaged and then divide by the number of items answered. 
 * Assumes that all items have the same “difficulty”
   * Does skipping “Have thoughts about HOW to commit suicide” =
     skipping “Fatigue” 
@@ -305,8 +319,7 @@ census tract)
 
 ## Time Series Methods
 
-* In panel data, if somebody drops out, you can carry their last
-   observation forward 
+* In panel data, if somebody drops out, you can carry their last observation forward 
   * Will be a biased estimate if there is growth going on.
   
 * Many filters have a “smoothing” option that will fill in whole is
