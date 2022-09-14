@@ -403,8 +403,11 @@ For tibbles, use the `select` or `pull` function.
 
 ```{r}
 mat <- matrix(1:12,3,4)
+mat
 apply(mat,1,min)
 apply(mat,2,max)
+df.mat <- as.data.frame(mat)
+summarize(df.mat, across(everything(), list(M=mean, S=sd), .names = "{.col}.fn{.fn}"))
 ```
 
 ```{r}
@@ -423,6 +426,8 @@ Scale all values so that maximum is 1 (assumes min is 0).
 
 ```{r scaleData}
 X <- matrix(sample.int(10,12,replace=TRUE),3,4)
+X
+apply(X,2,max)
 sweep(X,2,apply(X,2,max),"/")
 ```
 
@@ -495,3 +500,7 @@ as.data.frame(df1)
 ```
 
 Also, can use `sapply()` or `t(sapply())` if the result is the wrong shape.
+
+```{r}
+sapply(df,function(c) (c-min(c))/range(c))
+```
