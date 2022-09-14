@@ -10,7 +10,7 @@ editor: visual
 Simple and Traditional Ways of Handling Missing Data
 
 ```{r}
-#| echo: TRUE
+#| echo: true
 library(tidyverse)
 library(mvtnorm)
 ```
@@ -53,11 +53,11 @@ Pair-wise deletion does not guarantee that the covariance matrix will be *positi
 
 ## Positive Definite Covariance Matrix
 
--   For a normal distribution, a covariance matrix must be *positive definite*, that is, we must be able to find a matrix ${\bf A}$ , such that $\Sigma = {\bf A}^T{\bf A}$.
+-   For a normal distribution, a covariance matrix must be *positive definite*, that is, we must be able to find a matrix ${\bf A}$ , such that $\Sigma = \textbf{A}^T\textbf{A}$.
 
-    -   Note that \$ X = {\bf A} Z + \mu \$, where $Z$ is independent unit normal vector.
+-   Note that $X = Z^{T}\textbf{A} + \mu$, where $Z$ is an independent unit normal vector.
 
-    -   Can find ${\bf A}$ through the Cholesky decomposition, `chol(Sigma)`.
+-   Can find $\textbf{A}$ through the Cholesky decomposition, `chol(Sigma)`.
 
 -   If $\Sigma$ is not positive definite, we will run into problems when performing a regression.
 
@@ -78,10 +78,10 @@ sds <- c(20,15,2)
 sigma1 <- sweep(sweep(corr,1,sds,"*"),2,sds,"*")
 a <- chol(sigma1)
 z <- matrix(rnorm(300),100,3)
-Math <- t(a %*% t(z))
+Math <- z %*% a
 colnames(Math) <- names
 Math <- as.data.frame(sweep(Math,2,mus,"+"))
-summarize(x,across(everything(),list(M=mean,S=sd),
+summarize(Math,across(everything(),list(M=mean,S=sd),
                    .names = "{.col}.fn{.fn}"))
 cor(Math)
 
@@ -207,6 +207,7 @@ Math10$IQgroup <- cut(Math10$IQ,c(0,50,80,100,120,150,200))
 Math10 %>% group_by(IQgroup) %>% summarize(mean(MathProb,na.rm=TRUE))
 
 ```
+
 ```{r}
 Math10I <- Math10
 sum10 <- Math10 %>% group_by(IQgroup) %>% summarize(mean(MathProb,na.rm=TRUE))
@@ -219,6 +220,7 @@ Math10I$MathProb <- ifelse(is.na(Math10I$MathProb),
 summary(Math10I)
 
 ```
+
 -   Poststratification/Raking is a version of conditional mean imputation
 
 ## Regression Imputation
@@ -231,12 +233,10 @@ summary(Math10I)
 Math10II <- Math10
 fitMP <- lm(MathProb ~ IQ + MathSelfEff,data=Math10,
             na.action=na.exclude)
-pred <- predict(fitMP,data=Math10II)
-Math10II$MathProb <- ifelse(is.na(Math10II$MathProb),
-                            pred,Math10II$MathProb)
-sum(is.na(Math10II$MathProb))
-sum(is.na(Math10$MathProb))
-
+pred <- predict(fitMP,newdata=Math10II,
+                na.action=na.pass)
+Math10II$MathProb <- ifelse(is.na(Math10II$MathProb),pred,Math10II$MathProb)
+data.frame(orig=Math10$MathProb,pred,final=Math10II$MathProb)
 ```
 
 -   Regression and Conditional Mean Imputation methods are mathematically equivalent (code categorical variables with dummy variables)
@@ -317,7 +317,7 @@ Note: The estimation error is smallest at the mean and gets bigger as you get fa
 ## Standard Error of Regression Line
 
 ```{r}
-fit1 <- lm(MathProb ~IQ, data=X, na.action=na.omit)
+fit1 <- lm(MathProb ~IQ, data=Math10, na.action=na.omit)
 coefficients(summary(fit1))
 summary(fit1)$sigma
 
@@ -328,21 +328,26 @@ sum1 <- summary(fit1)
 b <- coefficients(sum1)[,1]
 b.se <- coefficients(sum1)[,2]
 s <- sum1$sigma
-Xra <- diff(range(Math$MathProb,na.rm=TRUE))
-Xbar <- mean(Math$MathProb,na.rm=TRUE)
-Xmin <- min(Math$MathProb,na.rm=TRUE) -.05*Xra
-Xmax <- max(Math$MathProb,na.rm=TRUE) + .05*Xra
-X <- seq(Xmin,Xmax,Xra*1.1/100)
 
-Y <- b[1]*X + b[2]
-Yse<- 2*(b.se[2] + b.se[1]*abs(X-Xbar))
+X <- sort(Math$IQ)
+Y <- predict.lm(fit1,newdata=data.frame(IQ=X),interval="confidence")
 
-
-ggplot(Math) + aes(x=MathProb, y=IQ) + geom_point() +
-  geom_abline(slope=b[1],intercept=b[2]) +
-  geom_ribbon(aes(x=X,ymin=Y-2*Yse,ymax=Y+2*Yse))
+data.frame(Math,X,Y) %>%
+  ggplot() + aes(y=MathProb, x=IQ) + geom_point() +
+  geom_path(aes(x=X,y=fit))  +
+  geom_ribbon(aes(x=X,ymin=lwr,ymax=upr),fill=grey(.75,.75))
 
 
+```
+
+```{r}
+
+Y1 <- predict.lm(fit1,newdata=data.frame(IQ=X),se.fit=TRUE)
+
+data.frame(Math,X,Y1) %>%
+  ggplot() + aes(y=MathProb, x=IQ) + geom_point() +
+  geom_path(aes(x=X,y=fit))  +
+  geom_ribbon(aes(x=X,ymin=fit-2*se.fit,ymax=fit+2*se.fit),fill=grey(.75,.75))
 ```
 
 ## Individual Prediction
@@ -365,6 +370,28 @@ Can use $t$-distribution to form confidence intervals
 ## Prediction standard errors
 
 ```{r}
+sum1 <- summary(fit1)
+b <- coefficients(sum1)[,1]
+b.se <- coefficients(sum1)[,2]
+s <- sum1$sigma
+
+X <- sort(Math$IQ)
+Y <- predict.lm(fit1,newdata=data.frame(IQ=X),interval="prediction")
+
+data.frame(Math,X,Y) %>%
+  ggplot() + aes(y=MathProb, x=IQ) + geom_point() +
+  geom_path(aes(x=X,y=fit))  +
+  geom_ribbon(aes(x=X,ymin=lwr,ymax=upr),fill=grey(.75,.75))
+
+```
+
+```{r}
+Y1 <- predict.lm(fit1,newdata=data.frame(IQ=X),se.fit=TRUE)
+Y1$se.pred <- sqrt(Y1$se.fit^2 + Y1$residual.scale^2)
+data.frame(Math,X,Y1) %>%
+  ggplot() + aes(y=MathProb, x=IQ) + geom_point() +
+  geom_path(aes(x=X,y=fit))  +
+  geom_ribbon(aes(x=X,ymin=fit-2*se.pred,ymax=fit+2*se.pred),fill=grey(.75,.75))
 
 ```
 
