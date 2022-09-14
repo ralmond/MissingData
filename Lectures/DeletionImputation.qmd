@@ -9,6 +9,12 @@ editor: visual
 
 Simple and Traditional Ways of Handling Missing Data
 
+```{r}
+#| echo: TRUE
+library(tidyverse)
+library(mvtnorm)
+```
+
 ## Deleting Incomplete Cases
 
 List-wise Deletion (Complete Case Analysis)
@@ -72,10 +78,68 @@ sds <- c(20,15,2)
 sigma1 <- sweep(sweep(corr,1,sds,"*"),2,sds,"*")
 a <- chol(sigma1)
 z <- matrix(rnorm(300),100,3)
-x <- a %*% t(z) + mus
-#colnames(x) <- names
-summary(x)
+Math <- t(a %*% t(z))
+colnames(Math) <- names
+Math <- as.data.frame(sweep(Math,2,mus,"+"))
+summarize(x,across(everything(),list(M=mean,S=sd),
+                   .names = "{.col}.fn{.fn}"))
+cor(Math)
 
+```
+
+## Again with `mvtnorm:rmvnorm`
+
+```{r}
+
+Math <- mvtnorm::rmvnorm(100,mus,sigma1)
+Math <- as.data.frame(Math)
+names(Math) <- names
+summarize(Math,across(everything(),list(M=mean,S=sd),
+                   .names = "{.col}.fn{.fn}"))
+summarize(Math,across(everything(),list(min=min,max=max),
+                   .names = "{.col}.fn{.fn}"))
+cor(Math)
+```
+
+## Once More with missing data
+
+```{r}
+Math <- mvtnorm::rmvnorm(100,mus,sigma1)
+## Clip to high and low values.
+Math[,1] <- ifelse(Math[,1]<0,0,ifelse(Math[,1]>100,100,Math[,1]))
+Math[,3] <- ifelse(Math[,3]<0,0,ifelse(Math[,3]>10,10,Math[,3]))
+## Make some missing values.
+colnames(Math) <- names
+Math10 <- Math25 <- Math
+is.na(Math10) <- runif(length(Math10))<.1
+is.na(Math25) <- runif(length(Math25))<.25
+
+Math <- as.data.frame(Math)
+Math10 <- as.data.frame(Math10)
+Math25 <- as.data.frame(Math25)
+summarize(Math10,across(everything(),list(M=mean,S=sd),
+                   .names = "{.col}.fn{.fn}"))
+summarize(Math10,across(everything(),list(min=min,max=max),
+                   .names = "{.col}.fn{.fn}"))
+summary(Math10)
+summarize(Math10,across(everything(),function(c)sum(is.na(c))))
+```
+
+## Correlations
+
+```{r default}
+cor(Math)
+cor(Math10)
+```
+
+```{r complete}
+cor(Math10,use="complete.obs")
+cor(Math25,use="complete.obs")
+```
+
+```{r pairwise}
+cor(Math10,use="pairwise.complete.obs")
+cor(Math25,use="pairwise.complete.obs")
 ```
 
 ## Imputation Method
@@ -93,8 +157,7 @@ summary(x)
 
 ## Mean Imputation
 
--   Take the mean of each column. Fill in the missing values with the
-column mean.
+-   Take the mean of each column. Fill in the missing values with the column mean.
 
 -   Sometimes the imputed value is not a legal value (proportion instead of a binary response, rational number instead of an integer)
 
@@ -122,6 +185,14 @@ column mean.
 ## Mean Imputation Example
 
 ```{r}
+Math10I <-
+  as.data.frame(
+    lapply(Math10,function(c)
+      ifelse(is.na(c),mean(c,na.rm=TRUE),c)
+    )
+  )
+summary(Math10I)
+
 
 ```
 
@@ -132,9 +203,22 @@ column mean.
     -   Impute the cell mean
 
 ```{r}
+Math10$IQgroup <- cut(Math10$IQ,c(0,50,80,100,120,150,200))
+Math10 %>% group_by(IQgroup) %>% summarize(mean(MathProb,na.rm=TRUE))
 
 ```
+```{r}
+Math10I <- Math10
+sum10 <- Math10 %>% group_by(IQgroup) %>% summarize(mean(MathProb,na.rm=TRUE))
+cmeans <- pull(sum10,2)
+names(cmeans) <- pull(sum10,1)
+I10MP <- cmeans[as.character(Math10I$IQgroup)]
+I10MP <- ifelse(is.na(I10MP),cmeans[length(cmeans)],I10MP)
+Math10I$MathProb <- ifelse(is.na(Math10I$MathProb),
+                           I10MP,Math10I$MathProb)
+summary(Math10I)
 
+```
 -   Poststratification/Raking is a version of conditional mean imputation
 
 ## Regression Imputation
@@ -144,6 +228,14 @@ column mean.
     -   Use the prediction from the regression model to impute missing value
 
 ```{r}
+Math10II <- Math10
+fitMP <- lm(MathProb ~ IQ + MathSelfEff,data=Math10,
+            na.action=na.exclude)
+pred <- predict(fitMP,data=Math10II)
+Math10II$MathProb <- ifelse(is.na(Math10II$MathProb),
+                            pred,Math10II$MathProb)
+sum(is.na(Math10II$MathProb))
+sum(is.na(Math10$MathProb))
 
 ```
 
@@ -225,6 +317,31 @@ Note: The estimation error is smallest at the mean and gets bigger as you get fa
 ## Standard Error of Regression Line
 
 ```{r}
+fit1 <- lm(MathProb ~IQ, data=X, na.action=na.omit)
+coefficients(summary(fit1))
+summary(fit1)$sigma
+
+```
+
+```{r}
+sum1 <- summary(fit1)
+b <- coefficients(sum1)[,1]
+b.se <- coefficients(sum1)[,2]
+s <- sum1$sigma
+Xra <- diff(range(Math$MathProb,na.rm=TRUE))
+Xbar <- mean(Math$MathProb,na.rm=TRUE)
+Xmin <- min(Math$MathProb,na.rm=TRUE) -.05*Xra
+Xmax <- max(Math$MathProb,na.rm=TRUE) + .05*Xra
+X <- seq(Xmin,Xmax,Xra*1.1/100)
+
+Y <- b[1]*X + b[2]
+Yse<- 2*(b.se[2] + b.se[1]*abs(X-Xbar))
+
+
+ggplot(Math) + aes(x=MathProb, y=IQ) + geom_point() +
+  geom_abline(slope=b[1],intercept=b[2]) +
+  geom_ribbon(aes(x=X,ymin=Y-2*Yse,ymax=Y+2*Yse))
+
 
 ```
 
