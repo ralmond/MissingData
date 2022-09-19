@@ -1,0 +1,46 @@
+---
+title: "ALEC Analysis"
+format: html
+editor: visual
+---
+
+These are data from Francis Prevatt.
+
+Students with ADHD
+
+Control Students (without ADHD diagnosis)
+
+Measures of ADHD Symptoms (hyperactivity, inattention)
+
+Measures of anxiety & panic
+
+SAT, ACT scores
+
+Year, Age, Gender, ...
+
+```{r}
+Alec <- read.csv("PrevattData/AlecSubset.csv")
+Alec
+```
+
+## Find missing data patterns
+
+```{r}
+library(Amelia)
+missmap(Alec)
+```
+
+## Break variables into groups
+
+```{r}
+demographics <- c("group","ID","YEAR","AGE","GENDER","ETHNICITY")
+satACT <- c("SAT","SATVERBAL","SATQUANT","SATWRIT","ACT","ACTSCOREENG","ACTSCOREMATH","ACTSCOREREAD","ACTSCORESCIE","ACTSCORECOMP")
+psych <- c("PSYCHOEDASSE","DIAGNOSEDLD","DIAGNADHD","DIAGNOTHER","SPECIALED","ADHDEFindex")
+nonCog <-c("Acadmeicskills","inter_motivation","Instruc_efficacy","Concentration","Exter_motiv_fut","Socializing","Career_decide","Person_Adjust","Exter_Motiv_Curr")
+anxiety <- c("GADG","GADD","PAG","genanxa","paa","adhdtot","allanx","adhdxanx","inatt","hyper","inattxanx","hyperxanx","Lack_Anxiety")
+missmap(Alec[,demographics],main="Alec demographics")
+missmap(Alec[,satACT],main="Alec SAT & ACT")
+missmap(Alec[,psych],main="Alec Psych Measures")
+missmap(Alec[,nonCog],main="Alec Non Cognitive Measures")
+missmap(Alec[,anxiety],main="Alec Aniexty, Panic & ADHD")
+```

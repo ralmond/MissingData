@@ -358,7 +358,7 @@ data.frame(Math,X,Y1) %>%
     -   Estimation of regression line
     -   Individual variability around regression line (residual standard error)
 
-## Individitual Precition Error
+## Individidual Prediction Error
 
 Now need to add variability around the regression line to variability of the regression line
 
@@ -399,6 +399,16 @@ data.frame(Math,X,Y1) %>%
 
 ```{r}
 
+Math10I3 <- Math10
+fitMP <- lm(MathProb ~ IQ + MathSelfEff,data=Math10,
+            na.action=na.exclude)
+pred <- predict(fitMP,newdata=Math10II,
+                na.action=na.pass, se.fit=TRUE)
+pred$prederr <- sqrt(pred$se.fit^2+pred$residual.scale^2)
+imp <- rnorm(nrow(Math10I3),pred$fit,pred$prederr)
+
+Math10I3$MathProb <- ifelse(is.na(Math10I3$MathProb),imp,Math10I3$MathProb)
+data.frame(orig=Math10$MathProb,fit=pred$fit,imp,final=Math10I3$MathProb)
 ```
 
 ## Stocahstic Regression properties
