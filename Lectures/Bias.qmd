@@ -1,0 +1,31 @@
+---
+title: "Bias and M.S.E"
+format: html
+editor: visual
+---
+
+## Bias
+
+Let $\theta$ be a parameter and $\widetilde{\theta}$ be an estimate of that parameter. Then the *bias* is
+
+$$ E[\widetilde{\theta}-\theta]$$
+
+The *relative bias* is
+
+$$
+E[\widetilde{\theta}-\theta]/\theta
+$$
+
+*Scaled bias* is
+
+$$
+E[\widetilde{\theta}-\theta]/\sigma
+$$
+
+where $\sigma$ is a scaling constant.
+
+## Mean Squared Error
+
+$$
+MSE(\widetilde{\theta}) = E[(\widetilde{\theta}-\theta)^2]
+$$
