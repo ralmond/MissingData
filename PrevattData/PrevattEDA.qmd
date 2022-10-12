@@ -19,7 +19,7 @@ SAT, ACT scores
 Year, Age, Gender, ...
 
 ```{r}
-Alec <- read.csv("PrevattData/AlecSubset.csv")
+Alec <- read.csv("/cloud/project/PrevattData/AlecSubset.csv")
 Alec
 ```
 
@@ -43,4 +43,86 @@ missmap(Alec[,satACT],main="Alec SAT & ACT")
 missmap(Alec[,psych],main="Alec Psych Measures")
 missmap(Alec[,nonCog],main="Alec Non Cognitive Measures")
 missmap(Alec[,anxiety],main="Alec Aniexty, Panic & ADHD")
+```
+
+## Anxiety and Panic by Group
+
+Make sure factor variables are marked as factors.
+
+```{r}
+Alec$group <- factor(Alec$group,levels=1:2,labels=c("ADHD","Control"))
+Alec$YEAR <- factor(Alec$YEAR,levels=1:5,labels=c("Freshman","Sophmore","Junior","Senior","Grad"))
+Alec$GENDER <- factor(Alec$GENDER,levels=1:2,labels=c("Female","Male"))
+Alec$ETHNICITY <- factor(Alec$ETHNICITY)
+summary(Alec[c("group","YEAR","GENDER","ETHNICITY")])
+                     
+```
+
+## Look at Anxiety by Diagnosis
+
+```{r}
+
+ggplot(Alec,aes(y=genanxa,group=group)) + geom_boxplot()
+```
+
+```{r t-test-completecase}
+fitcom <- lm(genanxa~group,data=Alec,na.action=na.omit)
+summary(fitcom)
+```
+
+## Build missing model for Genanxa
+
+```{r}
+cor(Alec[,satACT],Alec$genanxa,use="complete")
+cor(Alec[,psych],Alec$genanxa,use="complete")
+cor(Alec[,anxiety],Alec$genanxa,use="pair")
+```
+
+See if these variables are collected (missing) inpendently of genanxa.
+
+```{r}
+missmap(Alec[is.na(Alec$genanxa),anxiety])
+missmap(Alec[is.na(Alec$genanxa),satACT])
+missmap(Alec[is.na(Alec$genanxa),psych])
+```
+
+Fit some models
+
+```{r}
+fit.genanxa.miss <- lm(genanxa~YEAR+GENDER+inatt+hyper +ETHNICITY,
+                       data=Alec,na.action=na.exclude)
+summary(fit.genanxa.miss)
+```
+
+No need to drop non-significant variables from model.
+
+Imputation model should always include all of the variables in the analysis model.
+
+## Make predictions
+
+```{r}
+genanxa.pred <- predict(fit.genanxa.miss,newdata=Alec,
+                        na.action=na.pass)
+sum(is.na(Alec$genanxa))
+sum(is.na(genanxa.pred))
+sum(is.na(Alec$genanxa) & is.na(genanxa.pred))
+Alec$genanxa.imp <- ifelse(is.na(Alec$genanxa),genanxa.pred,Alec$genanxa)
+
+```
+
+## Redo analyses
+
+```{r}
+ggplot(Alec,aes(y=genanxa,group=group)) + geom_boxplot()
+ggplot(Alec,aes(y=genanxa.imp,group=group)) + geom_boxplot()
+```
+
+```{r t-test-imp}
+fitcom1 <- lm(genanxa.imp~group,data=Alec,na.action=na.omit)
+summary(fitcom)
+```
+
+```{r compare models}
+coef(fitcom)
+coef(fitcom1)
 ```
