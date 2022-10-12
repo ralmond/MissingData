@@ -1,0 +1,337 @@
+---
+title: Multiple Imputation
+format: html
+---
+
+# Multiple Imputation
+
+A slightly more Bayesian approach
+
+# Bayesian Inference
+
+In Bayesian inference everything is either:
+
+:fixed and known:A constant or parameter
+
+:random variable:Which has a known distribution
+
+_Probability distributions represent an uncertain state of knowledge._
+
+## Bayes' Rule
+
+Let $Y$ be the data, and $\theta$ be the parameters.
+
+The _likelihood_ is $F(Y|\theta)$.
+
+The _prior_ is $F(\theta)$, what is known about parameters before
+observing data (often population distributions).
+
+The _posterior_ is
+
+$$f(\theta|Y) = \frac{f(Y|\theta}f(\theta)}{\int f(Y|\theta)
+dF(\theta)} $$
+
+State of knowledge after observing $Y$.
+
+$$ C= {\int f(Y|\theta)
+dF(\theta)} $$ is normalization constant.  In general, the intergral
+can be really hard to calculate.
+
+## Normal--Normal Model
+
+<https://pluto.coe.fsu.edu/rdemos/Bayesian/NormalNormal.Rmd>
+
+## Beta-Binomial Model
+
+<https://pluto.coe.fsu.edu/rdemos/Bayesian/BetaBinomiall.Rmd>
+
+## Maximum A Posteriori (MAP)
+
+$$ MAP = \arg\max_{\theta} P(Y|\theta) P(\theta) $$
+Maximum Likelihood Estimate:
+$$ MLE = \hat \theta = \arg\max_{\theta} P(Y|\theta) $$
+
+The _hat_ is used to indicate a maximum likelihood estimate.
+
+## Expected A Posteriori (EAP)
+
+$$ EAP = \tilde{\theta} = \int \theta P(Y|\theta) dP(\theta) $$
+
+The tilde is used to indicate any old estimator.
+
+
+## EAP vs MLE/MAP a simple example
+
+
+
+## Credibility vs Confidence Intervals
+
+Classical 95% confidence interval
+
+Bayesian 95% credibility interval
+
+
+
+## Some Colorful Thoughts
+
+* Rubin:  We want our c.i.’s to be well calibrated; sometimes Bayesian intervals are better calibrated than classical ones
+  * In problems with missing data this is often the case
+* Savage:  “Can’t make a Bayesian Omelet without breaking the Bayesian Egg”
+  * If you want the credibility interval interpretation, you need to make the prior assumption
+  * But, if sample is large and prior is weak (high variance) then prior should not matter much
+* Gelman:  Standing at the back door with a shotgun making sure no subjective information creeps in with the prior while letting the subjective choice of likelihood walk in through the wide open front door.
+  * Choice of likelihood matters much more than choice of prior
+
+
+
+# Rubin’s Lazy Bayesian Approach
+
+* In the 1980s, software that did Bayesian estimation was generally unavailable
+  * BUGS took off in mid-1990s
+  * Also many specialized Bayesian methods have appeared since this statement
+* If sample size is large enough, and you pick a standard non-informative prior, then classical and Bayesian estimates are close
+  * Variance follows an inverse chi-squared distribution with _N-1_ degrees of freedom and a scale factor related to the normal variance estimator
+  * After integrating out variance, mean follows a Student’s _t_ distribution with mean equal to sample mean and _N-1_ degrees of freedom
+  * Similar results for regression and ANOVA models
+* Unless you have strong prior information, just do inference with standard least-squares/MLE software, assume a non-informative prior and interpret the results as classical and/or Bayesian as appropriate.
+
+
+
+
+
+
+
+# Estimation with missing data
+
+
+## Getting rid of Ymis
+
+
+
+## Ignorable Mechanisms
+
+
+
+# EM Algorithm
+
+<img src="img/MultipleImputations0.png" width=147px />
+
+
+
+## Intuition
+
+An intuitive view of the algorithm is that we are alternatively doing
+a mean (regression) imputation on the missing values and maximizing
+the likelihood.  
+
+This, however, works only if the log likelihood is liner in the missing values.
+
+The log likelihood _is_ linear in the sufficient statistics, so we can
+fill those in instead. 
+
+
+
+## EM for Exponential Family
+
+
+
+## Drawbacks of EM
+
+* Heavily depends on modeling assumptions about data (likelihood form)
+* Algebra of EM must be worked out for each model
+  * Great if somebody has already done the work (Mplusormvnmlepackage)
+  * Not so great if we need to do the work ourselves (MLE regression in R)
+* Difficult to calculate the standard errors
+  * Often resort to bootstrap, which requires large samples
+* Restricted to MLE/MAP estimation
+  * Consider estimation of a binomial _p_ with data of no events in _n_ attempts
+  * Prior information needs to be informative before it helps
+
+
+# Back to the missing data problem
+
+
+
+## Multiple Imputation Trick
+
+* Inner integral (over theta) is a standard Bayesian inference problem with complete data.
+* We can do the outer integral by statistical sampling.
+  * The integral asks us to calculate an expected value.
+  * The average of a sample is a _consistent_ estimator of expected value
+* Create several complete data sets using stochastic integration, then take the average over those data sets
+
+
+
+## Multiple Imputation by Phases
+
+
+
+## Pooling Phase
+
+
+
+## Expectation and Variance of conditional distribution
+
+
+
+## Analysis of Imputation Variance
+
+
+
+## Multiple vs Single Imputation
+
+* Single imputation
+  * Unbiased estimates for means even in MAR case
+  * But _underestimates_ the standard errors
+* Complete-case analysis
+  * Mean estimates unbiased only for MCAR case
+  * _Overestimates_ the standard errors
+* Multiple Imputations
+  * Unbiased estimates for means even in MAR case
+  * Estimates fors.e.are not bad even for _D=5_ or even _D=3\!_
+
+
+
+## Multiple Imputation Advantages
+
+Analysis Phase uses existing techniques, so can draw on existing
+software/knowledge 
+
+Pooling Phase is straightforward, can easily be done by hand for small
+_D_ and a small number of statistics 
+
+Software exists to do the imputation step for common statistical models
+
+
+
+## How many imputations
+
+
+
+## Large Sample Imputations
+
+* If the data set is large and the fraction of missing values is small, then complete case analysis is not too bad approximation of parameters (slight overestimate ofs.e.)
+* Can draw multiple stochastic regression imputations from the data
+* Two sources of variability
+  * Uncertainty about the parameters (regression line)
+  * Uncertainty about the size of the residual for this particular observation
+* Imputation in two phases:
+  * P-step – draw random parameters from posterior
+  * I-step – draw random values for _Y_  _mis_
+
+
+
+## Data Augmentation
+
+
+
+## MI and Public Data Sources
+
+A government agency could provide pre-imputed data sets for large
+public-use data sets. 
+
+Agency provides base data plus _D_ sets of _plausible values_ for the
+missing values. 
+
+Secondary users do the analysis phase and pooling phase on their own
+
+_Imputation model should incorporate all of the variables likely to be
+included in an analysis model._ 
+
+
+
+## Imputation and Analysis Model
+
+In general the imputation model should contain more terms and
+interactions than the analysis model. 
+
+It doesn’t matter if non-significant terms are included in the
+imputation model:  the goal is to do prediction, non-significant terms
+will have coefficients close to zero 
+
+A proper Bayesian prior which shrinks some of the small coefficients
+closer to zero helps here 
+
+
+
+## National Assessment of Educational Progress
+
+* Now annual (was biannual) survey of state of education in US
+* National Center for Educational Statistics (Part of Department of Education)
+* _Sample, not a census!_
+* Prime contractors
+  * ETS, development and scoring
+  * AIR, took over from ETS
+  * WestStat, sampling and administration
+* NAEP explorer and Restricted Use data sets
+
+
+
+## Multistage stratified cluster sampling with oversampled minorities
+
+* Very complex sampling design
+* Primary Sampling Units (PSAs)
+  * School Districts
+    * Schools
+      * Classrooms
+* Oversample schools with high minority populations
+* Need to stratify over school types:  Public, Charter, Private (religious and other)
+* WestStat/ETS provide primary sample weights for calculating mean and jackknife replicate weights for estimating standard errors.
+
+
+
+## Matrix Sampling
+
+* NAEP testing blueprint would require each student to test for around 8 hours
+* Typically students are only tested for 1 or 2 class periods
+* Solution is matrix sampling
+  * Items are divided up into forms
+  * Forms are put together into booklets:  each booklet has 2 or 3 forms
+  * There is overlap between booklets
+  * Booklets are shipped in a spiral pattern, so that consecutive students get different booklets, and all booklets get roughly equal exposure
+
+
+
+## Plausible Values
+
+* Typical target of inference is proficiency, which is latent
+* Proficiency is usually multidimensional
+  * And multiple dimensions are highly correlated
+* Because of matrix sampling, estimates are highly variable
+* Solution:  Impute 5 _plausible values_ for each proficiency.  Sets of plausible values capture correlations among dimensions
+* Estimates at individual level are highly inaccurate, but higher level aggregates are good (CLT in action)
+  * Restricted data users promise not to report individual scores.
+
+
+
+## NEAP Imputation Model
+
+* NAEP data has many (over 999) columns
+  * Weights and Jackknife weights (about 50 columns)
+  * Item responses (several hundred columns)
+  * Questionnaire responses
+    * Student questionnaire
+    * Teacher questionnaire
+    * School questionnaire
+  * Other background variables (e.g., school type, information about location, &c)
+* Some redundancy
+  * Sex (self-report), Sex (school-report), Sex (reconciled)
+  * Type of location (urban, suburban, rural):  TOL3, TOL5, TOL8, TOL3Old, TOL5Old, TOL5Old (Old definitions retained for longitudinal analyses)
+* Can’t anticipate every single analysis question that might be asked
+* Solution:  Do a PCA with most commonly used background questions
+  * Impute conditioned on PCA factors
+
+
+
+## NAEP Data Analysis
+
+* For each set of plausible values:
+  * Calculate means using primary weights
+  * Calculate standard errors using jackknife
+* Now combine using the pooling formulas
+* Or use NAEP Data Explorer:
+  * http://nces.ed.gov/nationsreportcard/naepdata/
+  * Basically builds up tables of conditional means
+
+
+
