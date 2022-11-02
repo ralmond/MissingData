@@ -1,0 +1,92 @@
+---
+title: "Multiple Imputation Graph"
+author: "Russell Almond"
+date: "2022-11-02"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(Amelia)
+library(tidyverse)
+library(plotly)
+```
+
+
+## Run imputation Model
+
+```{r}
+data(freetrade)
+a.out<-amelia(freetrade, m=25, ts="year",
+      cs="country", noms="signed", ords="polity")
+```
+
+## Transform into a long matrix.
+Add an `imp` column with the imputation number and then bind them all together.
+
+Also add ids to facilitate smooth animation:
+
+
+```{r}
+a.long <- cbind(a.out$imputations[[1]],imp=1, ids=1:nrow(freetrade))
+for (i in 2:a.out$m) {
+  a.long <- rbind(
+    cbind(a.out$imputations[[i]],imp=i,
+          ids=1:nrow(freetrade)))
+}
+summary(a.long)
+```
+
+## Now build our graph
+
+The secret is to use `imp` as the frame parameter.
+
+```{r}
+p <- ggplot(a.long,aes(x=tariff,y=gdp.pc,
+                        frame=imp)) +
+    geom_point() + geom_smooth()
+
+ggplotly(p) %>%
+  layout(
+     title = "GDP versus Tariffs",
+     yaxis = list(
+       title = "Per capita GDP",
+       zeroline = F,
+       tickprefix = "$"
+     ),
+     xaxis = list(
+       title = "Tariff",
+       zeroline = F, 
+       showgrid = F
+     )
+   ) #%>%
+   # animation_opts(
+   #   frame = 100, 
+   #   transition = 0, 
+   #   redraw = TRUE
+   # ) %>%
+   # animation_slider(
+   #   currentvalue = list(
+   #     prefix = "Imp "
+   #   )
+   # )
+```
+
+```{r}
+base <- a.long %>% plot_ly(x=~tariff, y=~gdp.pc,
+                           text=~country,
+                           frame=~imp,
+                           ids=~ids,
+                           hoverinfo="text") 
+
+base %>% add_markers(color= ~polity, frame=~imp,
+                     ids= ~ids) %>%
+  animation_opts(1000,easing="elastic", redraw=FALSE) %>%
+  animation_slider()
+  
+```
+
+
+
+
