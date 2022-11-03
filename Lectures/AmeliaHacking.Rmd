@@ -1,0 +1,25 @@
+---
+title: "Amelia"
+output: html_notebook
+---
+
+```{r}
+library(Amelia)
+```
+
+```{r}
+AmeliaView()
+```
+
+## Model from Using Amelia
+
+```{r AmeliaModel}
+a.out2 <- amelia(freetrade, m = 5, ts = "year", cs = "country",
+                 noms = "signed", ords = "polity")
+summary(a.out2)
+```
+
+
+```{r plotit}
+plot(a.out2)
+```
