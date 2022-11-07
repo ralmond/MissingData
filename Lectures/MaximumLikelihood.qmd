@@ -1,0 +1,151 @@
+---
+title: "Maximum likelihood and EM estimation."
+author: "Russell Almond"
+format: revealjs
+editor: visual
+---
+
+## Three Approaches to Missing Data Problems
+
+-   EM Algorithm
+    -   Concentrates on getting the MLE/MAP and standard error.
+    -   Built into some packages for limited model
+        -   Multivariate Normal
+    -   Does not require priors
+-   Multiple Imputation
+    -   Posterior Mean and SD (assumes posterior is approximately normal)
+    -   Sometimes uses MCMC to generate imputation
+    -   Existing packages (`Amelia`, `mi`)
+    -   Used with published data sets (NAEP, TIMMS)
+-   MCMC
+    -   Can look at full posterior distribution
+    -   Handles arbitrary models (including non-ignorable missingness)
+    -   OpenBUGS, JAGS, Stan make this simple
+
+## The Likelihood
+
+-   Parameters: $\theta$
+-   Data: $\mathbf{X}$
+-   Likelihood: $f(\mathbf{X}|\theta)$ or $f(\mathbf{X}; \theta)$, or $\mathcal{L} (\theta | \mathbf{X})$.
+-   Conditional Probability, not probability
+-   Bayesian look at Posterior: $$ f(\theta|{\bf X}) \propto f({\bf X}|\theta) f(\theta) $$
+
+## Maximum Likelihood (ML) and Maximum A Posteriori (MAP)
+
+-   Maximum Likelihood (R. A. Fisher)
+    -   Find a value $\widehat{\theta}$ that maximizes $\mathcal{L}(\theta|{\bf X})$.
+    -   Maximize $\text{ln} \mathcal{L}(\theta|{\bf X})$
+-   Bayesian *Maximum A Posterior* (MAP)
+    -   Find value $\widetilde{\theta}$ that maximizes $f(\theta|{\bf X})$.\
+    -   Note, don't need normalization constant in Bayes rule.
+    -   Same as ML when $f(\theta)=1$.
+
+## Limits of ML and MAP
+
+-   Doesn't do well when MLE is at boundary of parameter space
+    -   IRT model where students get all items right
+    -   Binomial model when no events in $n$ trials. In this case $\widehat p = 0$.
+    -   *Expected A Posteriori* (EAP; posterior mean) fixes this problem
+        -   Requires calculating the normalization constant
+-   Can be multiple modes
+    -   Identification problems
+
+## Independent and Identically (i.i.d.) Distributed observations
+
+-   Usually assume data consists of \[conditionally\] independent and identically distributed (i.i.d.) case
+    -   $X_i$ and $X_j$ and conditionally independent given $\theta$
+    -   The distribution $f(X_i|\theta)$ is the same for all $i$
+-   Then can factor likelihood: $$ L(\theta | {\bf X}) = \prod_{i} f(X_i | \theta)$$ $$ \text{ln} L(\theta | {\bf X}) = \sum_{i} \text{ln} f(X_i | \theta)$$
+-   Working on the log scale avoids numerical underflow problems.
+
+## Exponential Family
+
+-   Many common distributions including the [normal](https://en.wikipedia.org/wiki/Normal_distribution), [exponential](https://en.wikipedia.org/wiki/Exponential_distribution), [gamma](https://en.wikipedia.org/wiki/Gamma_distribution), [chi-squared](https://en.wikipedia.org/wiki/Chi-squared_distribution), [beta](https://en.wikipedia.org/wiki/Beta_distribution), [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_distribution), [Bernoulli](https://en.wikipedia.org/wiki/Bernoulli_distribution), [categorical](https://en.wikipedia.org/wiki/Categorical_distribution), [Poisson](https://en.wikipedia.org/wiki/Poisson_distribution), [binomial](https://en.wikipedia.org/wiki/Binomial_distribution) (with fixed number of trials), [multinomial](https://en.wikipedia.org/wiki/Multinomial_distribution) (with fixed number of trials), and [negative binomial](https://en.wikipedia.org/wiki/Negative_binomial_distribution) (with fixed number of failures). \[Links are to Wikipedia page for those distributions.\]
+
+-   These can all be written in a common format: $$ f(X|\theta) = h(X) exp(\eta(\theta)T(X)-A(\theta)) $$ $$ \text{ln} f(X|\theta) \propto \eta(\theta)T(X)-A(\theta) $$
+
+## Normal Distribution
+
+-   Let $X_1, \ldots, X_n$ be an i.i.d. sample from normal
+    -   mean $\mu$
+    -   sd $\sigma$
+
+$$ \mathcal{L}(\mu|{\bf X},\sigma) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp \left (
+-   \frac{1}{2} \left ( \frac{X_i-\mu}{\sigma} \right )^2 \right )$$
+
+$$ \text{ln} \mathcal{L}(\mu|{\bf X},\sigma) \propto \sum_{i=1}^{n}
+-   \frac{1}{2} \left ( \frac{X_i-\mu}{\sigma} \right )^2  \propto - \sum_{i=1}^{n} (X_i-\mu)^2$$
+
+*Maximum likelihood = Least Squares*
+
+## Newton-Raphson Method
+
+-   Originally for finding zeros of a function, but if we apply it to the first derivative, then it finds local maxima and minima of the function
+-   Each step moves closer to the maximum
+-   May be multiple maxima
+    -   Multiple starting points
+    -   Simulated annealing & other modifications
+
+# Newton-Raphson Animation
+
+http://en.wikipedia.org/wiki/File:NewtonIteration_Ani.gif
+
+![Newton's Algorithm](http://en.wikipedia.org/wiki/File:NewtonIteration_Ani.gif)
+
+## Gradient Decent
+
+<https://en.wikipedia.org/wiki/Gradient_descent>
+
+![Gradient Decent](https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Gradient_descent.svg/350px-Gradient_descent.svg.png)
+
+-   To get to the bottom (top) of the hill, go in the direction where it is steepest.
+
+-   Let $\theta^{(r)}$ be an estimate of the parameter.
+
+-   Gradient (steepest direction) is $$ \nabla L(\theta) = \left [ 
+    \array{\partial L(\theta)/\partial \theta_1\\
+    \ldots\\
+    \partial L(\theta)/\partial \theta_k\\}
+    \right ] $$
+
+-   Take a series of step going in the steepest direction.
+
+## Tuning Parameters
+
+## Estimating Standard Errors
+
+## Likelihood Ratio Tests
+
+## Deviance
+
+## Analysis of Deviance in R
+
+Suppose we fit a bunch of linear models:
+
+```{r, eval=FALSE}
+fit1 <- lm(formula1, data)
+
+fitm<- lm(formulam, data )
+```
+
+If models are nested, we might want to make an ANOVA table
+
+```{r, eval=FALSE}
+aov(fit1,...,fitm)
+```
+
+If the models are `glm`s instead of `lm`s, R will produce an analysis of deviance instead.
+
+## AIC and BIC
+
+#\$ AIC and BIC in R
+
+R has defined `AIC()` and `BIC()` functions for `lm` and `glm` objects.
+
+Trick:
+
+```{r eval=FALSE}
+sapply(list(fit1,...,fitm),AIC)
+```
+
+will produce a table of AIC values.
