@@ -55,8 +55,9 @@ editor: visual
 -   Usually assume data consists of \[conditionally\] independent and identically distributed (i.i.d.) case
     -   $X_i$ and $X_j$ and conditionally independent given $\theta$
     -   The distribution $f(X_i|\theta)$ is the same for all $i$
--   Then can factor likelihood: $$ L(\theta | {\bf X}) = \prod_{i} f(X_i | \theta)$$ $$ \text{ln} L(\theta | {\bf X}) = \sum_{i} \text{ln} f(X_i | \theta)$$
+-   Then can factor likelihood: $$ \mathcal{L}(\theta | {\bf X}) = \prod_{i} f(X_i | \theta)$$ $$ L(\theta) = \text{ln} \mathcal {L}(\theta | {\bf X}) = \sum_{i} \text{ln} f(X_i | \theta)$$
 -   Working on the log scale avoids numerical underflow problems.
+
 
 ## Exponential Family
 
@@ -109,14 +110,44 @@ http://en.wikipedia.org/wiki/File:NewtonIteration_Ani.gif
     \right ] $$
 
 -   Take a series of step going in the steepest direction.
+- Converges to local (not necessarily global) maximum
 
 ## Tuning Parameters
 
+* Let $\gamma^{(r)}$ be the step size at step $r$.
+* $\theta^{(r+1)} = \theta^{(r)} + \gamma^{(r)}\nabla L(\theta^{(r)})$
+* Stop when $|L(\theta^{(r+1)}) - L(\theta^{(r)}) | < \epsilon$
+  - Often `sqrt(.Machine$double.eps)`
+* Step size $\gamma$ and tolerance $\epsilon$ are tuning parameters
+
+See R function `optim()`
+
 ## Estimating Standard Errors
+
+* The _Hessian_ (maxtix of 2nd order partial derivatives) is negative covariance matrix of the parameter estimates.
+* This is related to the Fisher Information ($\mathcal(I)$)
+
+$$\left (\mathcal{I}(\widehat{\theta}) \right )_{ij} 
+= - \frac{\partial^2}{\partial\theta_i\partial\theta_j} 
+L(\widehat(\theta)) $$
 
 ## Likelihood Ratio Tests
 
+* Two models Model 1 $\subset$ Model 2
+  - Parameters $p_1 < p_2$
+$$ X^2 = -2(L_1(\widehat{\theta_1}) - L_2(\widehat{\theta_2)) $$
+  - $X^2 \sim \chi^2(p2-p1)$
+  
+* R provides `logLik` method for `lm` and `glm` object.
+* `pchisq(diff,df)` to look up chi-squared value.
+
 ## Deviance
+
+* Define a saturated model, Model $s$:  all possible interactions.
+* The _deviance_ is $-2(L_1(\widehat{\theta_1}) - L_s(\widehat{\theta_s))$
+* R provides a `deviance()` method.
+* Difference in deviances follow chi-square distributions.
+
 
 ## Analysis of Deviance in R
 
@@ -124,7 +155,7 @@ Suppose we fit a bunch of linear models:
 
 ```{r, eval=FALSE}
 fit1 <- lm(formula1, data)
-
+# ...
 fitm<- lm(formulam, data )
 ```
 
@@ -138,7 +169,15 @@ If the models are `glm`s instead of `lm`s, R will produce an analysis of devianc
 
 ## AIC and BIC
 
-#\$ AIC and BIC in R
+* Compare non-nested models by looking at penalized log likelihoods
+
+$$AIC = 2p - 2L(\widehat{\theta}) $$
+
+$$BIC = p \,\text{ln}\, n - 2 L(\widehat{\theta})$$
+
+* Smaller values are good
+
+## AIC and BIC in R
 
 R has defined `AIC()` and `BIC()` functions for `lm` and `glm` objects.
 

@@ -31,7 +31,7 @@ Also add ids to facilitate smooth animation:
 ```{r}
 a.long <- cbind(a.out$imputations[[1]],imp=1, ids=1:nrow(freetrade))
 for (i in 2:a.out$m) {
-  a.long <- rbind(
+  a.long <- rbind(a.long,
     cbind(a.out$imputations[[i]],imp=i,
           ids=1:nrow(freetrade)))
 }
